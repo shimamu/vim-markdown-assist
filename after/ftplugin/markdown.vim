@@ -99,10 +99,14 @@ function! s:markdown_emphasis(mark)
     call cursor(line("."), col(".") + strlen(a:mark) * 2)
 endfunction
 
-function! s:markdown_link(position)
+function! Markdown_link_str()
     let l:url = @+
     let l:title = s:get_title_from_url(l:url)
-    execute ":normal " . a:position . "[" . l:title . "](" . l:url . ")"
+    return "[" . l:title . "](" . l:url . ")"
+endfunction
+
+function! s:markdown_link(position)
+    execute ":normal " . a:position . Markdown_link_str()
 endfunction
 
 function! s:get_title_from_url(url)
@@ -163,3 +167,4 @@ nnoremap <silent> <C-m>r :ReMarkdownHeaderLine<CR>
 nnoremap <silent> <C-m>il :InsertMarkdownLink<CR>
 nnoremap <silent> <C-m>al :AppendMarkdownLink<CR>
 
+inoremap <expr> <C-f> Markdown_link_str()
