@@ -150,6 +150,16 @@ function! s:table_format()
     call setpos('.', l:pos)
 endfunction
 
+function! Markdown_complete()
+    call complete(col('.'), [
+                \ {'word': '1. ', 'menu': 'order list'},
+                \ {'word': '- ', 'menu': 'unorder list'},
+                \ {'word': '[]()', 'menu': 'link'}
+                \ ])
+    return ''
+endfunction
+
+inoremap <f5> <C-r>=Markdown_Complete()<CR>
 command! MarkdownHeaderLine1 call s:markdown_header_line(s:HEADER_LINE_1)
 command! MarkdownHeaderLine2 call s:markdown_header_line(s:HEADER_LINE_2)
 command! ReMarkdownHeaderLine call s:remarkdown_all_header_line()
@@ -168,3 +178,4 @@ nnoremap <silent> <C-m>il :InsertMarkdownLink<CR>
 nnoremap <silent> <C-m>al :AppendMarkdownLink<CR>
 
 inoremap <expr> <C-f> Markdown_link_str()
+inoremap <f5> <C-r>=Markdown_complete()<CR>
