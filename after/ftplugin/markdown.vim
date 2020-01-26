@@ -8,6 +8,7 @@ let s:EMPHASIS_ITALIC = "*"
 let s:INSERT = "i"
 let s:APPEND = "a"
 let s:HEADERS_REGEXP = '\v^(#|.+\n(\=+|-+)$)'
+let s:HEADER_LINE_REGEXP = '\v^.+\n(\=+|-+)$'
 let s:NEXT = 1
 let s:PREV = -1
 
@@ -17,6 +18,17 @@ function! s:is_on_header_line_area(mark)
     elseif s:is_current_line_on_header_line(a:mark)
         return 1
     endif
+endfunction
+
+function! s:remarkdown_all_header_line()
+    let l:pos = getpos('.')
+    execute ":normal gg"
+    call s:remarkdown_header_line()
+    while search(s:HEADER_LINE_REGEXP, "W") > 0
+        call s:remarkdown_header_line()
+    endwhile
+
+    call setpos('.', l:pos)
 endfunction
 
 function! s:remarkdown_header_line()
@@ -136,7 +148,7 @@ endfunction
 
 command! MarkdownHeaderLine1 call s:markdown_header_line(s:HEADER_LINE_1)
 command! MarkdownHeaderLine2 call s:markdown_header_line(s:HEADER_LINE_2)
-command! ReMarkdownHeaderLine call s:remarkdown_header_line()
+command! ReMarkdownHeaderLine call s:remarkdown_all_header_line()
 command! MarkdownBold call s:markdown_emphasis(s:EMPHASIS_BOLD)
 command! MarkdownItalic call s:markdown_emphasis(s:EMPHASIS_ITALIC)
 command! InsertMarkdownLink call s:markdown_link(s:INSERT)
