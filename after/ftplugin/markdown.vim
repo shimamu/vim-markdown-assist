@@ -251,13 +251,14 @@ endfunction
 let mapleader = "\<Space>"
 
 inoremap <f5> <C-r>=Markdown_Complete()<CR>
-command! ClearMarkdownHeader call s:set_markdown_header(0)
-command! MarkdownHeader1 call s:set_markdown_header(1)
-command! MarkdownHeader2 call s:set_markdown_header(2)
-command! MarkdownHeader3 call s:set_markdown_header(3)
-command! MarkdownHeader4 call s:set_markdown_header(4)
-command! MarkdownHeader5 call s:set_markdown_header(5)
-command! MarkdownHeader6 call s:set_markdown_header(6)
+
+nnoremap <silent> <Leader>mh0 :<C-u>call <SID>set_markdown_header(0)<CR>
+nnoremap <silent> <Leader>mh1 :<C-u>call <SID>set_markdown_header(1)<CR>
+nnoremap <silent> <Leader>mh2 :<C-u>call <SID>set_markdown_header(2)<CR>
+nnoremap <silent> <Leader>mh3 :<C-u>call <SID>set_markdown_header(3)<CR>
+nnoremap <silent> <Leader>mh4 :<C-u>call <SID>set_markdown_header(4)<CR>
+nnoremap <silent> <Leader>mh5 :<C-u>call <SID>set_markdown_header(5)<CR>
+nnoremap <silent> <Leader>mh6 :<C-u>call <SID>set_markdown_header(6)<CR>
 
 nnoremap <silent> <Leader>mb :<C-U>set operatorfunc=<SID>set_markdown_bold<CR>g@
 xnoremap <silent> <Leader>mb :<C-U>call <SID>set_markdown_bold_visual()<CR>
@@ -275,13 +276,6 @@ command! MoveToNextMarkdownHeader call s:move_to_markdown_header(s:NEXT)
 command! MoveToPrevMarkdownHeader call s:move_to_markdown_header(s:PREV)
 command! MarkdownTableFormat call s:table_format()
 
-nnoremap <silent> <C-m>h0 :ClearMarkdownHeader<CR>
-nnoremap <silent> <C-m>h1 :MarkdownHeader1<CR>
-nnoremap <silent> <C-m>h2 :MarkdownHeader2<CR>
-nnoremap <silent> <C-m>h3 :MarkdownHeader3<CR>
-nnoremap <silent> <C-m>h4 :MarkdownHeader4<CR>
-nnoremap <silent> <C-m>h5 :MarkdownHeader5<CR>
-nnoremap <silent> <C-m>h6 :MarkdownHeader6<CR>
 nnoremap <silent> <C-m>il :InsertMarkdownLink<CR>
 nnoremap <silent> <C-m>al :AppendMarkdownLink<CR>
 
