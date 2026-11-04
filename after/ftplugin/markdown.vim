@@ -2,7 +2,7 @@ set formatoptions=tcroqln
 set comments=b:*,b:-,b:+,n:>,b:1.
 
 let s:EMPHASIS_BOLD = "**"
-let s:EMPHASIS_ITALIC = "*"
+let s:EMPHASIS_ITALIC = "_"
 let s:INSERT = "i"
 let s:APPEND = "a"
 let s:HEADERS_REGEXP = '\v^(#|.+\n(\=+|-+)$)'
@@ -28,71 +28,198 @@ function! s:set_markdown_header(level)
   call setline('.', l:line)
 endfunction
 
-function! s:markdown_emphasis(mark)
-    execute ":'<,'>s/\\%V\\(.\\+\\%V.\\)/" . a:mark . "\\1" . a:mark . "/g"
-    execute ":normal `>"
-    call cursor(line("."), col(".") + strlen(a:mark) * 2)
+function! s:wrap_text_char(start, end, wrapper) abort
+  let l:start_line_no = a:start[1]
+  let l:start_col = a:start[2]
+  let l:end_line_no = a:end[1]
+  let l:end_col = a:end[2]
+
+  let l:first_line = getline(l:start_line_no)
+  let l:last_line = getline(l:end_line_no)
+
+  " Get the byte length of the last character.
+  let l:last_char = matchstr(strpart(l:last_line, l:end_col - 1), '^.')
+  let l:end_byte = l:end_col - 1 + strlen(l:last_char)
+
+  if l:start_line_no == l:end_line_no
+    let l:new_line = strpart(l:first_line, 0, l:start_col - 1)
+          \ . a:wrapper
+          \ . strpart(l:first_line, l:start_col - 1, l:end_byte - l:start_col + 1)
+          \ . a:wrapper
+          \ . strpart(l:first_line, l:end_byte)
+
+    call setline(l:start_line_no, l:new_line)
+  else
+    let l:new_lines = getline(l:start_line_no, l:end_line_no)
+
+    let l:new_lines[0] = strpart(l:first_line, 0, l:start_col - 1)
+          \ . a:wrapper
+          \ . strpart(l:first_line, l:start_col - 1)
+
+    let l:new_lines[-1] = strpart(l:last_line, 0, l:end_byte)
+          \ . a:wrapper
+          \ . strpart(l:last_line, l:end_byte)
+
+    call setline(l:start_line_no, l:new_lines)
+  endif
+endfunction
+
+function! s:wrap_text_line(start, end, wrapper) abort
+  let l:start_line = a:start[1]
+  let l:end_line = a:end[1]
+  let l:lines = getline(l:start_line, l:end_line)
+
+  let l:lines[0] = a:wrapper . l:lines[0]
+  let l:lines[-1] .= a:wrapper
+
+  call setline(l:start_line, l:lines)
+endfunction
+
+function! s:wrap_text_block(start, end, wrapper) abort
+  let l:start_line_no = a:start[1]
+  let l:end_line_no = a:end[1]
+
+  let l:start_vcol = virtcol("'<")
+  let l:end_vcol = virtcol("'>")
+
+  if l:start_vcol > l:end_vcol
+    let [l:start_vcol, l:end_vcol] = [l:end_vcol, l:start_vcol]
+  endif
+
+  let l:new_lines = getline(l:start_line_no, l:end_line_no)
+
+  for l:i in range(len(l:new_lines))
+    let l:line = l:new_lines[l:i]
+    let l:line_no = l:start_line_no + l:i
+
+    let l:start_col = virtcol2col(0, l:line_no, l:start_vcol)
+    let l:end_col = virtcol2col(0, l:line_no, l:end_vcol)
+
+    if l:start_col == 0
+      continue
+    endif
+
+    if l:end_col == 0
+      let l:end_byte = strlen(l:line)
+    else
+      let l:last_char = matchstr(strpart(l:line, l:end_col - 1), '^.')
+      let l:end_byte = l:end_col - 1 + strlen(l:last_char)
+    endif
+
+    let l:new_lines[l:i] = strpart(l:line, 0, l:start_col - 1)
+          \ . a:wrapper
+          \ . strpart(l:line, l:start_col - 1, l:end_byte - l:start_col + 1)
+          \ . a:wrapper
+          \ . strpart(l:line, l:end_byte)
+  endfor
+
+  call setline(l:start_line_no, l:new_lines)
+endfunction
+
+function! s:wrap_text(type, wrapper) abort
+  let l:start = getpos("'[")
+  let l:end = getpos("']")
+
+  if a:type ==# 'char'
+    call s:wrap_text_char(l:start, l:end, a:wrapper)
+  elseif a:type ==# 'line'
+    call s:wrap_text_line(l:start, l:end, a:wrapper)
+  elseif a:type ==# 'block'
+    call s:wrap_text_block(l:start, l:end, a:wrapper)
+  endif
+endfunction
+
+function! s:wrap_text_visual(wrapper) abort
+  let l:start = getpos("'<")
+  let l:end = getpos("'>")
+  let l:mode = visualmode()
+
+  if l:mode ==# "\<C-V>"
+    call s:wrap_text_block(l:start, l:end, a:wrapper)
+  elseif l:mode ==# 'V'
+    call s:wrap_text_line(l:start, l:end, a:wrapper)
+  else
+    call s:wrap_text_char(l:start, l:end, a:wrapper)
+  endif
+endfunction
+
+function! s:set_markdown_bold(type) abort
+  call s:wrap_text(a:type, s:EMPHASIS_BOLD)
+endfunction
+
+function! s:set_markdown_bold_visual() abort
+  call s:wrap_text_visual(s:EMPHASIS_BOLD)
+endfunction
+
+function! s:set_markdown_italic(type) abort
+  call s:wrap_text(a:type, s:EMPHASIS_ITALIC)
+endfunction
+
+function! s:set_markdown_italic_visual() abort
+  call s:wrap_text_visual(s:EMPHASIS_ITALIC)
 endfunction
 
 function! Markdown_link_str()
-    let l:url = @+
-    let l:title = s:get_title_from_url(l:url)
-    return "[" . l:title . "](" . l:url . ")"
+  let l:url = @+
+  let l:title = s:get_title_from_url(l:url)
+  return "[" . l:title . "](" . l:url . ")"
 endfunction
 
 function! s:markdown_link(position)
-    execute ":normal " . a:position . Markdown_link_str()
+  execute ":normal " . a:position . Markdown_link_str()
 endfunction
 
 function! s:get_title_from_url(url)
-    try
-        let l:res = webapi#html#parseURL(a:url)
-        let l:dom = l:res.find("title")
-        let l:title = l:dom.child[0]
-        return l:title
-    catch
-        echo "Can't get title from clipboard."
-    endtry
+  try
+    let l:res = webapi#html#parseURL(a:url)
+    let l:dom = l:res.find("title")
+    let l:title = l:dom.child[0]
+    return l:title
+  catch
+    echo "Can't get title from clipboard."
+  endtry
 endfunction
 
 function! s:move_to_markdown_header(direction)
-    let l:search_option = 'W'
-    if a:direction ==# s:PREV
-        let l:search_option .= 'b'
-    endif
-    if search(s:HEADERS_REGEXP, l:search_option) == 0
-        echo 'no next header'
-    endif
+  let l:search_option = 'W'
+  if a:direction ==# s:PREV
+    let l:search_option .= 'b'
+  endif
+  if search(s:HEADERS_REGEXP, l:search_option) == 0
+    echo 'no next header'
+  endif
 endfunction
 
 function! s:table_format()
-    let l:pos = getpos('.')
-    normal! {
-    " Search instead of `normal! j` because of the table at beginning of file edge case.
-    call search('|')
-    normal! j
-    " Remove everything that is not a pipe, colon or hyphen next to a colon othewise
-    " well formated tables would grow because of addition of 2 spaces on the separator
-    " line by Tabularize /|.
-    let l:flags = (&gdefault ? '' : 'g')
-    execute 's/\(:\@<!-:\@!\|[^|:-]\)//e' . l:flags
-    execute 's/--/-/e' . l:flags
-    Tabularize /|
-    " Move colons for alignment to left or right side of the cell.
-    execute 's/:\( \+\)|/\1:|/e' . l:flags
-    execute 's/|\( \+\):/|:\1/e' . l:flags
-    execute 's/ /-/' . l:flags
-    call setpos('.', l:pos)
+  let l:pos = getpos('.')
+  normal! {
+  " Search instead of `normal! j` because of the table at beginning of file edge case.
+  call search('|')
+  normal! j
+  " Remove everything that is not a pipe, colon or hyphen next to a colon othewise
+  " well formated tables would grow because of addition of 2 spaces on the separator
+  " line by Tabularize /|.
+  let l:flags = (&gdefault ? '' : 'g')
+  execute 's/\(:\@<!-:\@!\|[^|:-]\)//e' . l:flags
+  execute 's/--/-/e' . l:flags
+  Tabularize /|
+  " Move colons for alignment to left or right side of the cell.
+  execute 's/:\( \+\)|/\1:|/e' . l:flags
+  execute 's/|\( \+\):/|:\1/e' . l:flags
+  execute 's/ /-/' . l:flags
+  call setpos('.', l:pos)
 endfunction
 
 function! Markdown_complete()
-    call complete(col('.'), [
-                \ {'word': '1. ', 'menu': 'order list'},
-                \ {'word': '- ', 'menu': 'unorder list'},
-                \ {'word': '[]()', 'menu': 'link'}
-                \ ])
-    return ''
+  call complete(col('.'), [
+        \ {'word': '1. ', 'menu': 'order list'},
+        \ {'word': '- ', 'menu': 'unorder list'},
+        \ {'word': '[]()', 'menu': 'link'}
+        \ ])
+  return ''
 endfunction
+
+let mapleader = "\<Space>"
 
 inoremap <f5> <C-r>=Markdown_Complete()<CR>
 command! ClearMarkdownHeader call s:set_markdown_header(0)
@@ -102,8 +229,13 @@ command! MarkdownHeader3 call s:set_markdown_header(3)
 command! MarkdownHeader4 call s:set_markdown_header(4)
 command! MarkdownHeader5 call s:set_markdown_header(5)
 command! MarkdownHeader6 call s:set_markdown_header(6)
-command! MarkdownBold call s:markdown_emphasis(s:EMPHASIS_BOLD)
-command! MarkdownItalic call s:markdown_emphasis(s:EMPHASIS_ITALIC)
+
+nnoremap <silent> <Leader>mb :<C-U>set operatorfunc=<SID>set_markdown_bold<CR>g@
+xnoremap <silent> <Leader>mb :<C-U>call <SID>set_markdown_bold_visual()<CR>
+nnoremap <silent> <Leader>mi :<C-U>set operatorfunc=<SID>set_markdown_italic<CR>g@
+xnoremap <silent> <Leader>mi :<C-U>call <SID>set_markdown_italic_visual()<CR>
+
+
 command! InsertMarkdownLink call s:markdown_link(s:INSERT)
 command! AppendMarkdownLink call s:markdown_link(s:APPEND)
 command! MoveToNextMarkdownHeader call s:move_to_markdown_header(s:NEXT)
