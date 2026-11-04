@@ -172,6 +172,22 @@ function! s:renumber_markdown_list() range
   endfor
 endfunction
 
+function! s:toggle_markdown_todo(start, end) abort
+  for l:lnum in range(a:start, a:end)
+    let l:line = getline(l:lnum)
+
+    if l:line =~# '^\s*-\s\+\[ \]'
+      let l:line = substitute(l:line, '\[ \]', '[x]', '')
+    elseif l:line =~# '^\s*-\s\+\[x\]'
+      let l:line = substitute(l:line, '\[x\]', '[ ]', '')
+    else
+      continue
+    endif
+
+    call setline(l:lnum, l:line)
+  endfor
+endfunction
+
 function! Markdown_link_str()
   let l:url = @+
   let l:title = s:get_title_from_url(l:url)
@@ -249,6 +265,9 @@ nnoremap <silent> <Leader>mi :<C-U>set operatorfunc=<SID>set_markdown_italic<CR>
 xnoremap <silent> <Leader>mi :<C-U>call <SID>set_markdown_italic_visual()<CR>
 
 xnoremap <silent> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list()<CR>
+
+nnoremap <silent> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line('.'), line('.'))<CR>
+xnoremap <silent> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line("'<"), line("'>"))<CR>
 
 command! InsertMarkdownLink call s:markdown_link(s:INSERT)
 command! AppendMarkdownLink call s:markdown_link(s:APPEND)
