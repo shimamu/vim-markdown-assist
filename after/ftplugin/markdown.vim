@@ -159,6 +159,19 @@ function! s:set_markdown_italic_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_ITALIC)
 endfunction
 
+function! s:renumber_markdown_list() range
+  let l:number = 1
+
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+
+    if l:line =~# '^\s*\d\+[.)] '
+      call setline(l:lnum, substitute(l:line, '^\(\s*\)\d\+[.)] ', '\=submatch(1) . l:number . ". "', ''))
+      let l:number += 1
+    endif
+  endfor
+endfunction
+
 function! Markdown_link_str()
   let l:url = @+
   let l:title = s:get_title_from_url(l:url)
@@ -235,6 +248,7 @@ xnoremap <silent> <Leader>mb :<C-U>call <SID>set_markdown_bold_visual()<CR>
 nnoremap <silent> <Leader>mi :<C-U>set operatorfunc=<SID>set_markdown_italic<CR>g@
 xnoremap <silent> <Leader>mi :<C-U>call <SID>set_markdown_italic_visual()<CR>
 
+xnoremap <silent> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list()<CR>
 
 command! InsertMarkdownLink call s:markdown_link(s:INSERT)
 command! AppendMarkdownLink call s:markdown_link(s:APPEND)
