@@ -345,6 +345,10 @@ function! Markdown_complete()
   return ''
 endfunction
 
+setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-
+setlocal formatoptions-=c
+setlocal formatoptions+=r
+
 let mapleader = "\<Space>"
 
 inoremap <f5> <C-r>=Markdown_Complete()<CR>
