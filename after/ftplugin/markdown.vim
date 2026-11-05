@@ -198,14 +198,35 @@ function! s:remove_markdown_emphasis() abort
 endfunction
 
 function! s:renumber_markdown_list() range
-  let l:number = 1
+  let l:counters = {}
 
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
+    let l:match = matchlist(l:line, '^\(\s*\)\(\d\+\)[.)]\s*')
 
-    if l:line =~# '^\s*\d\+[.)] '
-      call setline(l:lnum, substitute(l:line, '^\(\s*\)\d\+[.)] ', '\=submatch(1) . l:number . ". "', ''))
-      let l:number += 1
+    if !empty(l:match)
+      let l:indent = indent(l:lnum)
+      let l:key = string(l:indent)
+
+      " Reset counters for deeper indentation levels.
+      for l:key_to_remove in keys(l:counters)
+        if str2nr(l:key_to_remove) > l:indent
+          call remove(l:counters, l:key_to_remove)
+        endif
+      endfor
+
+      " Increment the counter for the current indentation level.
+      if has_key(l:counters, l:key)
+        let l:counters[l:key] += 1
+      else
+        let l:counters[l:key] = 1
+      endif
+
+      call setline(
+            \ l:lnum,
+            \ l:match[1] . l:counters[l:key] . '. ' .
+            \ strpart(l:line, strlen(l:match[0]))
+            \ )
     endif
   endfor
 endfunction
