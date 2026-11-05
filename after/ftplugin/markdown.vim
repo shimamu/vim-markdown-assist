@@ -320,7 +320,7 @@ function! s:toggle_markdown_todo(start, end) abort
     elseif l:line =~# '^\s*-\s\+\[x\]'
       let l:line = substitute(l:line, '\[x\]', '[ ]', '')
     else
-      continue
+      let l:line = substitute(l:line, '^\(\s*\)', '\1- [ ] ', '')
     endif
 
     call setline(l:lnum, l:line)
