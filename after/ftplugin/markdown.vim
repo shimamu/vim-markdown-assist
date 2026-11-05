@@ -160,41 +160,41 @@ function! s:set_markdown_italic_visual() abort
 endfunction
 
 function! s:remove_markdown_emphasis() abort
-    let l:line = getline('.')
-    let l:col = col('.')
-    let l:nearest_start = -1
-    let l:nearest_end = -1
-    let l:nearest_wrapper = ''
+  let l:line = getline('.')
+  let l:col = col('.')
+  let l:nearest_start = -1
+  let l:nearest_end = -1
+  let l:nearest_wrapper = ''
 
-    for l:wrapper in [s:EMPHASIS_BOLD, s:EMPHASIS_ITALIC]
-        let l:wrapper_len = strlen(l:wrapper)
-        let l:start = strridx(strpart(l:line, 0, l:col - 1), l:wrapper)
-        let l:end = stridx(l:line, l:wrapper, l:col - 1)
+  for l:wrapper in [s:EMPHASIS_BOLD, s:EMPHASIS_ITALIC]
+    let l:wrapper_len = strlen(l:wrapper)
+    let l:start = strridx(strpart(l:line, 0, l:col - 1), l:wrapper)
+    let l:end = stridx(l:line, l:wrapper, l:col - 1)
 
-        if l:start < 0 || l:end < 0
-            continue
-        endif
-
-        " Select the closest wrapper pair.
-        if l:nearest_start < 0 || l:start > l:nearest_start
-            let l:nearest_start = l:start
-            let l:nearest_end = l:end
-            let l:nearest_wrapper = l:wrapper
-        endif
-    endfor
-
-    if l:nearest_start < 0
-        return
+    if l:start < 0 || l:end < 0
+      continue
     endif
 
-    let l:wrapper_len = strlen(l:nearest_wrapper)
+    " Select the closest wrapper pair.
+    if l:nearest_start < 0 || l:start > l:nearest_start
+      let l:nearest_start = l:start
+      let l:nearest_end = l:end
+      let l:nearest_wrapper = l:wrapper
+    endif
+  endfor
 
-    let l:new_line = strpart(l:line, 0, l:nearest_start)
-                \ . strpart(l:line, l:nearest_start + l:wrapper_len,
-                \ l:nearest_end - l:nearest_start - l:wrapper_len)
-                \ . strpart(l:line, l:nearest_end + l:wrapper_len)
+  if l:nearest_start < 0
+    return
+  endif
 
-    call setline('.', l:new_line)
+  let l:wrapper_len = strlen(l:nearest_wrapper)
+
+  let l:new_line = strpart(l:line, 0, l:nearest_start)
+        \ . strpart(l:line, l:nearest_start + l:wrapper_len,
+        \ l:nearest_end - l:nearest_start - l:wrapper_len)
+        \ . strpart(l:line, l:nearest_end + l:wrapper_len)
+
+  call setline('.', l:new_line)
 endfunction
 
 function! s:renumber_markdown_list() range
@@ -320,7 +320,16 @@ function! s:toggle_markdown_todo(start, end) abort
     elseif l:line =~# '^\s*-\s\+\[x\]'
       let l:line = substitute(l:line, '\[x\]', '[ ]', '')
     else
-      let l:line = substitute(l:line, '^\(\s*\)', '\1- [ ] ', '')
+      let l:line = substitute(
+            \ l:line,
+            \ '^\(\s*\)-\s\+',
+            \ '\1- [ ] ',
+            \ ''
+            \ )
+
+      if l:line !~# '^\s*-\s\+\[ \]'
+        let l:line = substitute(l:line, '^\(\s*\)', '\1- [ ] ', '')
+      endif
     endif
 
     call setline(l:lnum, l:line)
