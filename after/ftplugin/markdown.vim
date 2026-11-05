@@ -172,6 +172,86 @@ function! s:renumber_markdown_list() range
   endfor
 endfunction
 
+function! s:get_clipboard_url()
+  if executable('wl-paste')
+    let l:url = system('wl-paste --no-newline')
+  elseif has('clipboard')
+    let l:url = getreg('+')
+  else
+    echoerr 'Clipboard is not available'
+    return ''
+  endif
+
+  let l:url = trim(l:url)
+
+  if l:url !~# '^https\?://'
+    echoerr 'Clipboard does not contain a valid URL'
+    return ''
+  endif
+
+  return l:url
+endfunction
+
+function! s:get_url_title(url)
+  try
+    let l:dom = webapi#html#parseURL(a:url)
+    let l:title = l:dom.find('title')
+
+    if empty(l:title)
+      return ''
+    endif
+
+    return trim(l:title.value())
+  catch
+    echohl WarningMsg
+    echomsg 'Failed to get page title: ' . v:exception
+    echohl None
+    return ''
+  endtry
+endfunction
+
+function! s:insert_markdown_link()
+  let l:url = s:get_clipboard_url()
+
+  if empty(l:url)
+    return
+  endif
+
+  let l:link = '[](' . l:url . ')'
+  let l:line = getline('.')
+  let l:col = col('.')
+
+  call setline('.', strpart(l:line, 0, l:col - 1)
+        \ . l:link . strpart(l:line, l:col - 1))
+
+  " Move cursor inside link text
+  call cursor(line('.'), l:col + 1)
+endfunction
+
+function! s:insert_markdown_link_with_title()
+  let l:url = s:get_clipboard_url()
+
+  if empty(l:url)
+    return
+  endif
+
+  let l:title = s:get_url_title(l:url)
+
+  if empty(l:title)
+    echoerr 'Failed to retrieve page title'
+    return
+  endif
+
+  let l:link = '[' . l:title . '](' . l:url . ')'
+  let l:line = getline('.')
+  let l:col = col('.')
+
+  call setline('.', strpart(l:line, 0, l:col - 1)
+        \ . l:link . strpart(l:line, l:col - 1))
+
+  call cursor(line('.'), l:col + strlen(l:link))
+endfunction
+
 function! s:toggle_markdown_todo(start, end) abort
   for l:lnum in range(a:start, a:end)
     let l:line = getline(l:lnum)
@@ -186,27 +266,6 @@ function! s:toggle_markdown_todo(start, end) abort
 
     call setline(l:lnum, l:line)
   endfor
-endfunction
-
-function! Markdown_link_str()
-  let l:url = @+
-  let l:title = s:get_title_from_url(l:url)
-  return "[" . l:title . "](" . l:url . ")"
-endfunction
-
-function! s:markdown_link(position)
-  execute ":normal " . a:position . Markdown_link_str()
-endfunction
-
-function! s:get_title_from_url(url)
-  try
-    let l:res = webapi#html#parseURL(a:url)
-    let l:dom = l:res.find("title")
-    let l:title = l:dom.child[0]
-    return l:title
-  catch
-    echo "Can't get title from clipboard."
-  endtry
 endfunction
 
 function! s:move_to_markdown_header(direction)
@@ -267,17 +326,14 @@ xnoremap <silent> <Leader>mi :<C-U>call <SID>set_markdown_italic_visual()<CR>
 
 xnoremap <silent> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list()<CR>
 
+nnoremap <Leader>ml :<C-u>call <SID>insert_markdown_link()<CR>
+nnoremap <Leader>mll :<C-u>call <SID>insert_markdown_link_with_title()<CR>
+
 nnoremap <silent> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line('.'), line('.'))<CR>
 xnoremap <silent> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line("'<"), line("'>"))<CR>
 
-command! InsertMarkdownLink call s:markdown_link(s:INSERT)
-command! AppendMarkdownLink call s:markdown_link(s:APPEND)
 command! MoveToNextMarkdownHeader call s:move_to_markdown_header(s:NEXT)
 command! MoveToPrevMarkdownHeader call s:move_to_markdown_header(s:PREV)
 command! MarkdownTableFormat call s:table_format()
 
-nnoremap <silent> <C-m>il :InsertMarkdownLink<CR>
-nnoremap <silent> <C-m>al :AppendMarkdownLink<CR>
-
-inoremap <expr> <C-f> Markdown_link_str()
 inoremap <f5> <C-r>=Markdown_complete()<CR>
