@@ -345,7 +345,7 @@ function! Markdown_complete()
   return ''
 endfunction
 
-setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-
+setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-,b:1.
 setlocal formatoptions-=c
 setlocal formatoptions+=r
 
