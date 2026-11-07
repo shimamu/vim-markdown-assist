@@ -1,3 +1,6 @@
+" vim:set ts=8 sts=2 sw=2 tw=0:
+" vim:set foldmethod=marker:
+
 set formatoptions=tcroqln
 set comments=b:*,b:-,b:+,n:>,b:1.
 
@@ -9,6 +12,8 @@ let s:HEADERS_REGEXP = '\v^(#|.+\n(\=+|-+)$)'
 let s:HEADER_LINE_REGEXP = '\v^.+\n(\=+|-+)$'
 let s:NEXT = 1
 let s:PREV = -1
+
+" {{{ Header
 
 function! s:set_markdown_header(level)
   if a:level < 0 || a:level > 6
@@ -27,6 +32,9 @@ function! s:set_markdown_header(level)
 
   call setline('.', l:line)
 endfunction
+
+" }}}
+" {{{ Text decoration
 
 function! s:wrap_text_char(start, end, wrapper) abort
   let l:start_line_no = a:start[1]
@@ -197,6 +205,9 @@ function! s:remove_markdown_emphasis() abort
   call setline('.', l:new_line)
 endfunction
 
+" }}}
+" {{{ List
+
 function! s:renumber_markdown_list() range
   let l:counters = {}
 
@@ -230,6 +241,9 @@ function! s:renumber_markdown_list() range
     endif
   endfor
 endfunction
+
+" }}}
+" {{{ Link
 
 function! s:get_clipboard_url()
   if executable('wl-paste')
@@ -311,6 +325,9 @@ function! s:insert_markdown_link_with_title()
   call cursor(line('.'), l:col + strlen(l:link))
 endfunction
 
+" }}}
+" {{{ Todo
+
 function! s:toggle_markdown_todo(start, end) abort
   for l:lnum in range(a:start, a:end)
     let l:line = getline(l:lnum)
@@ -335,6 +352,9 @@ function! s:toggle_markdown_todo(start, end) abort
     call setline(l:lnum, l:line)
   endfor
 endfunction
+
+" }}}
+
 
 function! s:move_to_markdown_header(direction)
   let l:search_option = 'W'
@@ -383,6 +403,7 @@ let mapleader = "\<Space>"
 
 inoremap <f5> <C-r>=Markdown_Complete()<CR>
 
+" {{{ Mappings
 
 let s:markdown_mappings = [
       \ {
@@ -516,6 +537,9 @@ endfunction
 
 call s:define_markdown_mappings()
 
+" }}}
+" {{{ Help
+
 function! s:show_markdown_help() abort
   let l:lines = ['Markdown mappings', '']
 
@@ -549,6 +573,7 @@ endfunction
 
 nnoremap <silent> <Leader>mh :<C-u>call <SID>show_markdown_help()<CR>
 
+" }}}
 
 command! MoveToNextMarkdownHeader call s:move_to_markdown_header(s:NEXT)
 command! MoveToPrevMarkdownHeader call s:move_to_markdown_header(s:PREV)
