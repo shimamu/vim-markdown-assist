@@ -38,6 +38,29 @@ function! s:set_markdown_header(level)
 endfunction
 
 " }}}
+" 4.10 Tables (extension) {{{2
+function! s:table_format()
+  let l:pos = getpos('.')
+  normal! {
+  " Search instead of `normal! j` because of the table at beginning of file edge case.
+  call search('|')
+  normal! j
+  " Remove everything that is not a pipe, colon or hyphen next to a colon othewise
+  " well formated tables would grow because of addition of 2 spaces on the separator
+  " line by Tabularize /|.
+  let l:flags = (&gdefault ? '' : 'g')
+  execute 's/\(:\@<!-:\@!\|[^|:-]\)//e' . l:flags
+  execute 's/--/-/e' . l:flags
+  Tabularize /|
+  " Move colons for alignment to left or right side of the cell.
+  execute 's/:\( \+\)|/\1:|/e' . l:flags
+  execute 's/|\( \+\):/|:\1/e' . l:flags
+  execute 's/ /-/' . l:flags
+  call setpos('.', l:pos)
+endfunction
+
+command! MarkdownTableFormat call s:table_format()
+" }}}
 " }}}
 " 5 Container blocks {{{1
 " 5.2 List items {{{2
@@ -363,26 +386,6 @@ endfunction
 
 " {{{1 Custom features
 
-function! s:table_format()
-  let l:pos = getpos('.')
-  normal! {
-  " Search instead of `normal! j` because of the table at beginning of file edge case.
-  call search('|')
-  normal! j
-  " Remove everything that is not a pipe, colon or hyphen next to a colon othewise
-  " well formated tables would grow because of addition of 2 spaces on the separator
-  " line by Tabularize /|.
-  let l:flags = (&gdefault ? '' : 'g')
-  execute 's/\(:\@<!-:\@!\|[^|:-]\)//e' . l:flags
-  execute 's/--/-/e' . l:flags
-  Tabularize /|
-  " Move colons for alignment to left or right side of the cell.
-  execute 's/:\( \+\)|/\1:|/e' . l:flags
-  execute 's/|\( \+\):/|:\1/e' . l:flags
-  execute 's/ /-/' . l:flags
-  call setpos('.', l:pos)
-endfunction
-
 function! Markdown_complete()
   call complete(col('.'), [
         \ {'word': '1. ', 'menu': 'order list'},
@@ -572,7 +575,6 @@ nnoremap <silent> <Leader>mh :<C-u>call <SID>show_markdown_help()<CR>
 
 " }}}
 
-command! MarkdownTableFormat call s:table_format()
 
 inoremap <f5> <C-r>=Markdown_complete()<CR>
 
