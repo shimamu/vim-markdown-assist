@@ -5,8 +5,7 @@
 " vim:set foldmethod=marker:
 
 set formatoptions=tcroqln
-set comments=b:*,b:-,b:+,n:>,b:1.
-setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-,b:1.
+setlocal comments=
 setlocal formatoptions-=c
 setlocal formatoptions+=r
 
@@ -72,6 +71,8 @@ command! MarkdownTableFormat call s:table_format()
 setlocal comments+=n:>
 " }}}
 " 5.2 List items {{{2
+setlocal comments+=b:*,b:-,b:+
+setlocal comments+=b:1.,b:1)
 
 function! s:renumber_markdown_list() range
   let l:counters = {}
@@ -108,7 +109,9 @@ function! s:renumber_markdown_list() range
 endfunction
 
 " }}}
-" 5.3 Task list items {{{2
+" 5.3 Task list items (extension) {{{2
+setlocal comments+=nb:-\ [\ ],nb:-\ [x]
+
 function! s:toggle_markdown_todo(start, end) abort
   for l:lnum in range(a:start, a:end)
     let l:line = getline(l:lnum)
