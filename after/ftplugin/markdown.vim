@@ -164,6 +164,30 @@ function! s:toggle_markdown_todo(start, end) abort
     call setline(l:lnum, l:line)
   endfor
 endfunction
+
+function! s:set_todo(done) range
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+
+    if l:line =~# '^\s*-\s*\[[ x]\]'
+      let l:mark = a:done ? 'x' : ' '
+      let l:line = substitute(
+            \ l:line,
+            \ '^\(\s*-\s*\)\[[ x]\]',
+            \ '\1[' . l:mark . ']',
+            \ '')
+      call setline(l:lnum, l:line)
+    endif
+  endfor
+endfunction
+
+" Normal mode
+nnoremap <Leader>mx :<C-u>call <SID>set_todo(1)<CR>
+nnoremap <Leader>m<Space> :<C-u>call <SID>set_todo(0)<CR>
+
+" Visual mode
+xnoremap <Leader>mx :<C-u>'<,'>call <SID>set_todo(1)<CR>
+xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
 " }}}
 " }}}
 " 6 Inlines {{{1
