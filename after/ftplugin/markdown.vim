@@ -6,7 +6,7 @@
 
 set formatoptions=tcroqln
 set comments=b:*,b:-,b:+,n:>,b:1.
-setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-,b:1.,nb:>
+setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-,b:1.
 setlocal formatoptions-=c
 setlocal formatoptions+=r
 
@@ -68,6 +68,9 @@ command! MarkdownTableFormat call s:table_format()
 " }}}
 " }}}
 " 5 Container blocks {{{1
+" 5.1 Block quotes {{{2
+setlocal comments+=n:>
+" }}}
 " 5.2 List items {{{2
 
 function! s:renumber_markdown_list() range
