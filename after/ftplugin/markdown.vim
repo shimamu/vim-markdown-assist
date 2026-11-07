@@ -5,8 +5,7 @@
 " vim:set foldmethod=marker:
 
 set formatoptions=tcroqln
-" Define todo list before unordered list to take precedence over '-'.
-setlocal comments=nb:-\ [\ ],nb:-\ [x]
+setlocal comments=
 setlocal formatoptions-=c
 setlocal formatoptions+=r
 
@@ -127,6 +126,20 @@ function! s:renumber_markdown_list() range
 endfunction
 " }}}
 " 5.3 Task list items (extension) {{{2
+function! s:markdown_todo_marker(lnum) abort
+  let l:line = getline(a:lnum)
+
+  if l:line !~# '^\s*-\s\+\[[ x]\]'
+    return ''
+  endif
+
+  return '[ ] '
+endfunction
+
+inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1) . <SID>markdown_todo_marker(line('.') - 1)<CR>"
+nnoremap <buffer> <expr> o "o\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1) . <SID>markdown_todo_marker(line('.') - 1)<CR>"
+nnoremap <buffer> <expr> O "O\<C-r>=<SID>markdown_list_marker(line('.') + 1, -1) . <SID>markdown_todo_marker(line('.') + 1)<CR>"
+
 function! s:toggle_markdown_todo(start, end) abort
   for l:lnum in range(a:start, a:end)
     let l:line = getline(l:lnum)
