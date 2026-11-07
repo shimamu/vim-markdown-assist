@@ -74,6 +74,9 @@ setlocal comments+=n:>
 " 5.2 List items {{{2
 setlocal comments+=b:*,b:-,b:+
 setlocal comments+=b:1.,b:1)
+for num in range(2, 100)
+  execute 'setlocal comments+=b:' . num . '.,b:' . num . ')'
+endfor
 
 function! s:renumber_markdown_list() range
   let l:counters = {}
