@@ -76,38 +76,40 @@ setlocal comments+=b:1.,b:1)
 
 function! s:renumber_markdown_list() range
   let l:counters = {}
+  let l:delimiters = {}
 
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
-    let l:match = matchlist(l:line, '^\(\s*\)\(\d\+\)[.)]\s*')
+    let l:match = matchlist(l:line, '^\(\s*\)\(\d\+\)\([.)]\)\s*')
 
     if !empty(l:match)
       let l:indent = indent(l:lnum)
       let l:key = string(l:indent)
 
-      " Reset counters for deeper indentation levels.
+      " Reset counters and delimiters for deeper indentation levels.
       for l:key_to_remove in keys(l:counters)
         if str2nr(l:key_to_remove) > l:indent
           call remove(l:counters, l:key_to_remove)
+          call remove(l:delimiters, l:key_to_remove)
         endif
       endfor
 
-      " Increment the counter for the current indentation level.
+      " Initialize the counter and delimiter for the current level.
       if has_key(l:counters, l:key)
         let l:counters[l:key] += 1
       else
         let l:counters[l:key] = 1
+        let l:delimiters[l:key] = l:match[3]
       endif
 
       call setline(
             \ l:lnum,
-            \ l:match[1] . l:counters[l:key] . '. ' .
+            \ l:match[1] . l:counters[l:key] . l:delimiters[l:key] . ' ' .
             \ strpart(l:line, strlen(l:match[0]))
             \ )
     endif
   endfor
 endfunction
-
 " }}}
 " 5.3 Task list items (extension) {{{2
 setlocal comments+=nb:-\ [\ ],nb:-\ [x]
