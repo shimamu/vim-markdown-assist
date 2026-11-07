@@ -6,6 +6,11 @@
 
 set formatoptions=tcroqln
 set comments=b:*,b:-,b:+,n:>,b:1.
+setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-,b:1.,nb:>
+setlocal formatoptions-=c
+setlocal formatoptions+=r
+
+let mapleader = "\<Space>"
 
 let s:EMPHASIS_BOLD = "**"
 let s:EMPHASIS_ITALIC = "_"
@@ -385,6 +390,7 @@ endfunction
 " }}}
 
 " {{{1 Custom features
+" {{{2 Completion
 
 function! Markdown_complete()
   call complete(col('.'), [
@@ -395,14 +401,9 @@ function! Markdown_complete()
   return ''
 endfunction
 
-setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-,b:1.,nb:>
-setlocal formatoptions-=c
-setlocal formatoptions+=r
+inoremap <f5> <C-r>=Markdown_complete()<CR>
 
-let mapleader = "\<Space>"
-
-inoremap <f5> <C-r>=Markdown_Complete()<CR>
-
+" }}}
 " {{{ Mappings
 
 let s:markdown_mappings = [
@@ -574,8 +575,4 @@ endfunction
 nnoremap <silent> <Leader>mh :<C-u>call <SID>show_markdown_help()<CR>
 
 " }}}
-
-
-inoremap <f5> <C-r>=Markdown_complete()<CR>
-
 " }}}
