@@ -363,16 +363,6 @@ endfunction
 
 " {{{1 Custom features
 
-function! s:move_to_markdown_header(direction)
-  let l:search_option = 'W'
-  if a:direction ==# s:PREV
-    let l:search_option .= 'b'
-  endif
-  if search(s:HEADERS_REGEXP, l:search_option) == 0
-    echo 'no next header'
-  endif
-endfunction
-
 function! s:table_format()
   let l:pos = getpos('.')
   normal! {
@@ -582,8 +572,6 @@ nnoremap <silent> <Leader>mh :<C-u>call <SID>show_markdown_help()<CR>
 
 " }}}
 
-command! MoveToNextMarkdownHeader call s:move_to_markdown_header(s:NEXT)
-command! MoveToPrevMarkdownHeader call s:move_to_markdown_header(s:PREV)
 command! MarkdownTableFormat call s:table_format()
 
 inoremap <f5> <C-r>=Markdown_complete()<CR>
