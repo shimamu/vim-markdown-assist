@@ -73,10 +73,21 @@ setlocal comments+=n:>
 " }}}
 " 5.2 List items {{{2
 setlocal comments+=b:*,b:-,b:+
-setlocal comments+=b:1.,b:1)
-for num in range(2, 100)
-  execute 'setlocal comments+=b:' . num . '.,b:' . num . ')'
-endfor
+
+function! s:markdown_list_marker(lnum, offset) abort
+  let l:line = getline(a:lnum)
+  let l:match = matchlist(l:line, '^\s*\(\d\+\)\([.)]\)\s\+')
+
+  if empty(l:match)
+    return ''
+  endif
+
+  return max([1, str2nr(l:match[1]) + a:offset]) . l:match[2] . ' '
+endfunction
+
+inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1)<CR>"
+nnoremap <buffer> <expr> o "o\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1)<CR>"
+nnoremap <buffer> <expr> O "O\<C-r>=<SID>markdown_list_marker(line('.') + 1, -1)<CR>"
 
 function! s:renumber_markdown_list() range
   let l:counters = {}
