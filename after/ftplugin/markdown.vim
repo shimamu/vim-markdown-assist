@@ -1,3 +1,6 @@
+" GFM Specification: 0.29-gfm (2019-04-06)
+" https://github.github.com/gfm/
+
 " vim:set ts=8 sts=2 sw=2 tw=0:
 " vim:set foldmethod=marker:
 
@@ -13,7 +16,8 @@ let s:HEADER_LINE_REGEXP = '\v^.+\n(\=+|-+)$'
 let s:NEXT = 1
 let s:PREV = -1
 
-" {{{ Header
+" 4 Leaf blocks {{{1
+" 4.2 ATX headings {{{2
 
 function! s:set_markdown_header(level)
   if a:level < 0 || a:level > 6
@@ -34,8 +38,74 @@ function! s:set_markdown_header(level)
 endfunction
 
 " }}}
-" {{{ Text decoration
+" }}}
+" 5 Container blocks {{{1
+" 5.2 List items {{{2
 
+function! s:renumber_markdown_list() range
+  let l:counters = {}
+
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+    let l:match = matchlist(l:line, '^\(\s*\)\(\d\+\)[.)]\s*')
+
+    if !empty(l:match)
+      let l:indent = indent(l:lnum)
+      let l:key = string(l:indent)
+
+      " Reset counters for deeper indentation levels.
+      for l:key_to_remove in keys(l:counters)
+        if str2nr(l:key_to_remove) > l:indent
+          call remove(l:counters, l:key_to_remove)
+        endif
+      endfor
+
+      " Increment the counter for the current indentation level.
+      if has_key(l:counters, l:key)
+        let l:counters[l:key] += 1
+      else
+        let l:counters[l:key] = 1
+      endif
+
+      call setline(
+            \ l:lnum,
+            \ l:match[1] . l:counters[l:key] . '. ' .
+            \ strpart(l:line, strlen(l:match[0]))
+            \ )
+    endif
+  endfor
+endfunction
+
+" }}}
+" 5.3 Task list items {{{2
+function! s:toggle_markdown_todo(start, end) abort
+  for l:lnum in range(a:start, a:end)
+    let l:line = getline(l:lnum)
+
+    if l:line =~# '^\s*-\s\+\[ \]'
+      let l:line = substitute(l:line, '\[ \]', '[x]', '')
+    elseif l:line =~# '^\s*-\s\+\[x\]'
+      let l:line = substitute(l:line, '\[x\]', '[ ]', '')
+    else
+      let l:line = substitute(
+            \ l:line,
+            \ '^\(\s*\)-\s\+',
+            \ '\1- [ ] ',
+            \ ''
+            \ )
+
+      if l:line !~# '^\s*-\s\+\[ \]'
+        let l:line = substitute(l:line, '^\(\s*\)', '\1- [ ] ', '')
+      endif
+    endif
+
+    call setline(l:lnum, l:line)
+  endfor
+endfunction
+" }}}
+" }}}
+" 6 Inlines {{{1
+" 6.4 Emphasis and strong emphasis {{{2
 function! s:wrap_text_char(start, end, wrapper) abort
   let l:start_line_no = a:start[1]
   let l:start_col = a:start[2]
@@ -206,44 +276,7 @@ function! s:remove_markdown_emphasis() abort
 endfunction
 
 " }}}
-" {{{ List
-
-function! s:renumber_markdown_list() range
-  let l:counters = {}
-
-  for l:lnum in range(a:firstline, a:lastline)
-    let l:line = getline(l:lnum)
-    let l:match = matchlist(l:line, '^\(\s*\)\(\d\+\)[.)]\s*')
-
-    if !empty(l:match)
-      let l:indent = indent(l:lnum)
-      let l:key = string(l:indent)
-
-      " Reset counters for deeper indentation levels.
-      for l:key_to_remove in keys(l:counters)
-        if str2nr(l:key_to_remove) > l:indent
-          call remove(l:counters, l:key_to_remove)
-        endif
-      endfor
-
-      " Increment the counter for the current indentation level.
-      if has_key(l:counters, l:key)
-        let l:counters[l:key] += 1
-      else
-        let l:counters[l:key] = 1
-      endif
-
-      call setline(
-            \ l:lnum,
-            \ l:match[1] . l:counters[l:key] . '. ' .
-            \ strpart(l:line, strlen(l:match[0]))
-            \ )
-    endif
-  endfor
-endfunction
-
-" }}}
-" {{{ Link
+" 6.6 Links {{{2
 
 function! s:get_clipboard_url()
   if executable('wl-paste')
@@ -326,35 +359,9 @@ function! s:insert_markdown_link_with_title()
 endfunction
 
 " }}}
-" {{{ Todo
-
-function! s:toggle_markdown_todo(start, end) abort
-  for l:lnum in range(a:start, a:end)
-    let l:line = getline(l:lnum)
-
-    if l:line =~# '^\s*-\s\+\[ \]'
-      let l:line = substitute(l:line, '\[ \]', '[x]', '')
-    elseif l:line =~# '^\s*-\s\+\[x\]'
-      let l:line = substitute(l:line, '\[x\]', '[ ]', '')
-    else
-      let l:line = substitute(
-            \ l:line,
-            \ '^\(\s*\)-\s\+',
-            \ '\1- [ ] ',
-            \ ''
-            \ )
-
-      if l:line !~# '^\s*-\s\+\[ \]'
-        let l:line = substitute(l:line, '^\(\s*\)', '\1- [ ] ', '')
-      endif
-    endif
-
-    call setline(l:lnum, l:line)
-  endfor
-endfunction
-
 " }}}
 
+" {{{1 Custom features
 
 function! s:move_to_markdown_header(direction)
   let l:search_option = 'W'
@@ -395,7 +402,7 @@ function! Markdown_complete()
   return ''
 endfunction
 
-setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-,b:1.
+setlocal comments=nb:-\ [\ ],nb:-\ [x],b:-,b:1.,nb:>
 setlocal formatoptions-=c
 setlocal formatoptions+=r
 
@@ -580,3 +587,5 @@ command! MoveToPrevMarkdownHeader call s:move_to_markdown_header(s:PREV)
 command! MarkdownTableFormat call s:table_format()
 
 inoremap <f5> <C-r>=Markdown_complete()<CR>
+
+" }}}
