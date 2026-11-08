@@ -13,6 +13,7 @@ let mapleader = "\<Space>"
 
 " 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
+" s:set_markdown_header(level) {{{3
 function! s:set_markdown_header(level)
   if a:level < 0 || a:level > 6
     return
@@ -40,6 +41,7 @@ nnoremap <buffer> <Leader>mh5 :<C-u>call <SID>set_markdown_header(5)<CR>
 nnoremap <buffer> <Leader>mh6 :<C-u>call <SID>set_markdown_header(6)<CR>
 
 " 4.10 Tables (extension) {{{2
+" s:table_format() {{{3
 function! s:table_format()
   let l:pos = getpos('.')
   normal! {
@@ -69,6 +71,7 @@ setlocal comments+=n:>
 " 5.2 List items {{{2
 setlocal comments+=b:*,b:-,b:+
 
+" s:markdown_list_marker() {{{3
 function! s:markdown_list_marker(lnum, offset) abort
   let l:line = getline(a:lnum)
   let l:match = matchlist(l:line, '^\s*\(\d\+\)\([.)]\)\s\+')
@@ -84,6 +87,7 @@ inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>markdown_list_marker(line('.') -
 nnoremap <buffer> <expr> o "o\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1)<CR>"
 nnoremap <buffer> <expr> O "O\<C-r>=<SID>markdown_list_marker(line('.') + 1, -1)<CR>"
 
+" s:renumber_markdown_list() {{{3
 function! s:renumber_markdown_list() range
   let l:counters = {}
   let l:delimiters = {}
@@ -124,6 +128,7 @@ endfunction
 xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list()<CR>
 
 " 5.3 Task list items (extension) {{{2
+" s:markdown_todo_marker() {{{3
 function! s:markdown_todo_marker(lnum) abort
   let l:line = getline(a:lnum)
 
@@ -138,6 +143,7 @@ inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>markdown_list_marker(line('.') -
 nnoremap <buffer> <expr> o "o\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1) . <SID>markdown_todo_marker(line('.') - 1)<CR>"
 nnoremap <buffer> <expr> O "O\<C-r>=<SID>markdown_list_marker(line('.') + 1, -1) . <SID>markdown_todo_marker(line('.') + 1)<CR>"
 
+" s:toggle_markdown_todo() {{{3
 function! s:toggle_markdown_todo(start, end) abort
   for l:lnum in range(a:start, a:end)
     let l:line = getline(l:lnum)
@@ -166,6 +172,7 @@ endfunction
 nnoremap <buffer> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line('.'), line('.'))<CR>
 xnoremap <buffer> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line("'<"), line("'>"))<CR>
 
+" s:set_todo() {{{3
 function! s:set_todo(done) range
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
@@ -182,11 +189,8 @@ function! s:set_todo(done) range
   endfor
 endfunction
 
-" Normal mode
 nnoremap <Leader>mx :<C-u>call <SID>set_todo(1)<CR>
 nnoremap <Leader>m<Space> :<C-u>call <SID>set_todo(0)<CR>
-
-" Visual mode
 xnoremap <Leader>mx :<C-u>'<,'>call <SID>set_todo(1)<CR>
 xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
 
@@ -195,6 +199,7 @@ xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
 let s:EMPHASIS_BOLD = "**"
 let s:EMPHASIS_ITALIC = "_"
 
+" s:wrap_text_char() {{{3
 function! s:wrap_text_char(start, end, wrapper) abort
   let l:start_line_no = a:start[1]
   let l:start_col = a:start[2]
@@ -231,6 +236,7 @@ function! s:wrap_text_char(start, end, wrapper) abort
   endif
 endfunction
 
+" s:wrap_text_line() {{{3
 function! s:wrap_text_line(start, end, wrapper) abort
   let l:start_line = a:start[1]
   let l:end_line = a:end[1]
@@ -242,6 +248,7 @@ function! s:wrap_text_line(start, end, wrapper) abort
   call setline(l:start_line, l:lines)
 endfunction
 
+" s:wrap_text_block() {{{3
 function! s:wrap_text_block(start, end, wrapper) abort
   let l:start_line_no = a:start[1]
   let l:end_line_no = a:end[1]
@@ -283,6 +290,7 @@ function! s:wrap_text_block(start, end, wrapper) abort
   call setline(l:start_line_no, l:new_lines)
 endfunction
 
+" s:wrap_text() {{{3
 function! s:wrap_text(type, wrapper) abort
   let l:start = getpos("'[")
   let l:end = getpos("']")
@@ -296,6 +304,7 @@ function! s:wrap_text(type, wrapper) abort
   endif
 endfunction
 
+" s:wrap_text_visual() {{{3
 function! s:wrap_text_visual(wrapper) abort
   let l:start = getpos("'<")
   let l:end = getpos("'>")
@@ -310,22 +319,27 @@ function! s:wrap_text_visual(wrapper) abort
   endif
 endfunction
 
+" s:set_markdown_bold() {{{3
 function! s:set_markdown_bold(type) abort
   call s:wrap_text(a:type, s:EMPHASIS_BOLD)
 endfunction
 
+" s:set_markdown_bold_visual() {{{3
 function! s:set_markdown_bold_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_BOLD)
 endfunction
 
+" s:set_markdown_italic() {{{3
 function! s:set_markdown_italic(type) abort
   call s:wrap_text(a:type, s:EMPHASIS_ITALIC)
 endfunction
 
+" s:set_markdown_italic_visual() {{{3
 function! s:set_markdown_italic_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_ITALIC)
 endfunction
 
+" s:remove_markdown_emphasis() {{{3
 function! s:remove_markdown_emphasis() abort
   let l:line = getline('.')
   let l:col = col('.')
@@ -373,6 +387,7 @@ xnoremap <buffer> <Leader>mi :<C-u>call <SID>set_markdown_italic_visual()<CR>
 nnoremap <buffer> <Leader>mu :<C-u>call <SID>remove_markdown_emphasis()<CR>
 
 " 6.6 Links {{{2
+" s:get_clipboard_url() {{{3
 function! s:get_clipboard_url()
   if executable('wl-paste')
     let l:url = system('wl-paste --no-newline')
@@ -393,6 +408,7 @@ function! s:get_clipboard_url()
   return l:url
 endfunction
 
+" s:get_url_title() {{{3
 function! s:get_url_title(url)
   try
     let l:dom = webapi#html#parseURL(a:url)
@@ -411,6 +427,7 @@ function! s:get_url_title(url)
   endtry
 endfunction
 
+" s:insert_markdown_link() {{{3
 function! s:insert_markdown_link()
   let l:url = s:get_clipboard_url()
 
@@ -429,6 +446,7 @@ function! s:insert_markdown_link()
   call cursor(line('.'), l:col + 1)
 endfunction
 
+" s:insert_markdown_link_with_title() {{{3
 function! s:insert_markdown_link_with_title()
   let l:url = s:get_clipboard_url()
 
@@ -459,6 +477,7 @@ nnoremap <buffer> <Leader>mll :<C-u>call <SID>insert_markdown_link_with_title()<
 " {{{1 Custom features
 " {{{2 Completion
 
+" Markdown_complete() {{{3
 function! Markdown_complete()
   call complete(col('.'), [
         \ {'word': '1. ', 'menu': 'order list'},
