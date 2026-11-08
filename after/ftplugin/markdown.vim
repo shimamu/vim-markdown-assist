@@ -4,8 +4,8 @@
 " vim:set ts=8 sts=2 sw=2 tw=0:
 " vim:set foldmethod=marker:
 
-set formatoptions=tcroqln
 setlocal comments=
+set formatoptions=tcroqln
 setlocal formatoptions-=c
 setlocal formatoptions+=r
 
@@ -137,7 +137,9 @@ function! s:format_table()
 
   " Parse rows and determine column widths.
   for l:line in l:lines
-    let l:cells = split(trim(l:line, ' |'), '|', 1)
+    let l:line = substitute(l:line, '^\s*|\s*', '', '')
+    let l:line = substitute(l:line, '\s*|$', '', '')
+    let l:cells = split(l:line, '|', 1)
     let l:cells = map(l:cells, 'trim(v:val)')
 
     if s:is_separator_row(l:cells)
@@ -174,7 +176,9 @@ function! s:format_table()
 
   " Ensure the separator has enough room for alignment markers.
   for l:i in range(l:column_count)
-    let l:widths[l:i] = max([3, l:widths[l:i]])
+    let l:alignment = get(l:alignments, l:i, 'none')
+    let l:min_width = l:alignment ==# 'center' ? 4 : 3
+    let l:widths[l:i] = max([l:min_width, l:widths[l:i]])
   endfor
 
   " Format rows.
@@ -236,9 +240,84 @@ function! s:get_alignment(cell)
   return 'none'
 endfunction
 
+" s:add_table_column() {{{3
+function! s:add_table_column(side)
+  if !s:is_table_line(line('.'))
+    return
+  endif
+
+  let l:lnum = line('.')
+  let l:prefix = strpart(getline('.'), 0, col('.') - 1)
+  let l:column = max([
+        \ 0,
+        \ count(split(l:prefix, '\zs'), '|') - 1,
+        \ ])
+
+  call s:format_table()
+
+  let l:start = l:lnum
+  let l:end = l:lnum
+
+  while l:start > 1 && s:is_table_line(l:start - 1)
+    let l:start -= 1
+  endwhile
+
+  while l:end < line('$') && s:is_table_line(l:end + 1)
+    let l:end += 1
+  endwhile
+
+  let l:lines = getline(l:start, l:end)
+  let l:formatted = []
+  let l:insert_column = 0
+
+  for l:line in l:lines
+    let l:line = substitute(l:line, '^\s*|\s*', '', '')
+    let l:line = substitute(l:line, '\s*|$', '', '')
+    let l:cells = split(l:line, '|', 1)
+    let l:cells = map(l:cells, 'trim(v:val)')
+
+    let l:insert_at = a:side ==# 'left'
+          \ ? l:column
+          \ : l:column + 1
+    let l:insert_at = min([l:insert_at, len(l:cells)])
+
+    let l:insert_column = l:insert_at
+
+    if s:is_separator_row(l:cells)
+      call insert(l:cells, ':--:', l:insert_at)
+    else
+      call insert(l:cells, '', l:insert_at)
+    endif
+
+    call add(l:formatted, '|' . join(l:cells, '|') . '|')
+  endfor
+
+  call setline(l:start, l:formatted[0])
+  if len(l:formatted) > 1
+    call setline(l:start + 1, l:formatted[1:])
+  endif
+
+  call cursor(l:lnum, 1)
+  call s:format_table()
+
+  " Move the cursor to the first cell of the inserted column.
+  let l:header = getline(l:start)
+  let l:column_start = 1
+
+  for l:i in range(l:insert_column)
+    let l:separator = stridx(l:header, '|', l:column_start)
+    let l:column_start = l:separator + 1
+  endfor
+
+  call cursor(l:start, l:column_start + 2)
+endfunction
+
 " mappings {{{3
 nnoremap <buffer> <Leader>mf :<C-u>call <SID>table_format()<CR>
 xnoremap <buffer> <Leader>mf :call <SID>table_format()<CR>
+
+nnoremap <buffer> <Leader>mar :<C-u>call <SID>add_table_column('right')<CR>
+nnoremap <buffer> <Leader>mal :<C-u>call <SID>add_table_column('left')<CR>
 
 " 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
@@ -291,8 +370,8 @@ function! s:renumber_markdown_list(start_from_one) range
         let l:counters[l:key] += 1
       else
         let l:counters[l:key] = a:start_from_one
-          \ ? 1
-          \ : str2nr(l:match[2])
+              \ ? 1
+              \ : str2nr(l:match[2])
         let l:delimiters[l:key] = l:match[3]
       endif
 
