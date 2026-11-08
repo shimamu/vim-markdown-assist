@@ -22,7 +22,6 @@ let s:PREV = -1
 
 " 4 Leaf blocks {{{1
 " 4.2 ATX headings {{{2
-
 function! s:set_markdown_header(level)
   if a:level < 0 || a:level > 6
     return
@@ -41,6 +40,13 @@ function! s:set_markdown_header(level)
   call setline('.', l:line)
 endfunction
 
+nnoremap <buffer> <Leader>mh0 :<C-u>call <SID>set_markdown_header(0)<CR>
+nnoremap <buffer> <Leader>mh1 :<C-u>call <SID>set_markdown_header(1)<CR>
+nnoremap <buffer> <Leader>mh2 :<C-u>call <SID>set_markdown_header(2)<CR>
+nnoremap <buffer> <Leader>mh3 :<C-u>call <SID>set_markdown_header(3)<CR>
+nnoremap <buffer> <Leader>mh4 :<C-u>call <SID>set_markdown_header(4)<CR>
+nnoremap <buffer> <Leader>mh5 :<C-u>call <SID>set_markdown_header(5)<CR>
+nnoremap <buffer> <Leader>mh6 :<C-u>call <SID>set_markdown_header(6)<CR>
 " }}}
 " 4.10 Tables (extension) {{{2
 function! s:table_format()
@@ -124,6 +130,8 @@ function! s:renumber_markdown_list() range
     endif
   endfor
 endfunction
+
+xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list()<CR>
 " }}}
 " 5.3 Task list items (extension) {{{2
 function! s:markdown_todo_marker(lnum) abort
@@ -164,6 +172,9 @@ function! s:toggle_markdown_todo(start, end) abort
     call setline(l:lnum, l:line)
   endfor
 endfunction
+
+nnoremap <buffer> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line('.'), line('.'))<CR>
+xnoremap <buffer> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line("'<"), line("'>"))<CR>
 
 function! s:set_todo(done) range
   for l:lnum in range(a:firstline, a:lastline)
@@ -361,9 +372,15 @@ function! s:remove_markdown_emphasis() abort
   call setline('.', l:new_line)
 endfunction
 
+nnoremap <buffer> <Leader>mb :<C-u>set operatorfunc=<SID>set_markdown_bold<CR>g@
+xnoremap <buffer> <Leader>mb :<C-u>call <SID>set_markdown_bold_visual()<CR>
+
+nnoremap <buffer> <Leader>mi :<C-u>set operatorfunc=<SID>set_markdown_italic<CR>g@
+xnoremap <buffer> <Leader>mi :<C-u>call <SID>set_markdown_italic_visual()<CR>
+
+nnoremap <buffer> <Leader>mu :<C-u>call <SID>remove_markdown_emphasis()<CR>
 " }}}
 " 6.6 Links {{{2
-
 function! s:get_clipboard_url()
   if executable('wl-paste')
     let l:url = system('wl-paste --no-newline')
@@ -444,6 +461,8 @@ function! s:insert_markdown_link_with_title()
   call cursor(line('.'), l:col + strlen(l:link))
 endfunction
 
+nnoremap <buffer> <Leader>ml :<C-u>call <SID>insert_markdown_link()<CR>
+nnoremap <buffer> <Leader>mll :<C-u>call <SID>insert_markdown_link_with_title()<CR>
 " }}}
 " }}}
 
@@ -460,177 +479,6 @@ function! Markdown_complete()
 endfunction
 
 inoremap <f5> <C-r>=Markdown_complete()<CR>
-
-" }}}
-" {{{ Mappings
-
-let s:markdown_mappings = [
-      \ {
-      \   'group': 'Header',
-      \   'mode': 'n',
-      \   'key': '<Leader>mh0',
-      \   'description': 'Remove heading',
-      \   'rhs': ':<C-u>call <SID>set_markdown_header(0)<CR>',
-      \ },
-      \ {
-      \   'group': 'Header',
-      \   'mode': 'n',
-      \   'key': '<Leader>mh1',
-      \   'description': 'Set heading level 1',
-      \   'rhs': ':<C-u>call <SID>set_markdown_header(1)<CR>',
-      \ },
-      \ {
-      \   'group': 'Header',
-      \   'mode': 'n',
-      \   'key': '<Leader>mh2',
-      \   'description': 'Set heading level 2',
-      \   'rhs': ':<C-u>call <SID>set_markdown_header(2)<CR>',
-      \ },
-      \ {
-      \   'group': 'Header',
-      \   'mode': 'n',
-      \   'key': '<Leader>mh3',
-      \   'description': 'Set heading level 3',
-      \   'rhs': ':<C-u>call <SID>set_markdown_header(3)<CR>',
-      \ },
-      \ {
-      \   'group': 'Header',
-      \   'mode': 'n',
-      \   'key': '<Leader>mh4',
-      \   'description': 'Set heading level 4',
-      \   'rhs': ':<C-u>call <SID>set_markdown_header(4)<CR>',
-      \ },
-      \ {
-      \   'group': 'Header',
-      \   'mode': 'n',
-      \   'key': '<Leader>mh5',
-      \   'description': 'Set heading level 5',
-      \   'rhs': ':<C-u>call <SID>set_markdown_header(5)<CR>',
-      \ },
-      \ {
-      \   'group': 'Header',
-      \   'mode': 'n',
-      \   'key': '<Leader>mh6',
-      \   'description': 'Set heading level 6',
-      \   'rhs': ':<C-u>call <SID>set_markdown_header(6)<CR>',
-      \ },
-      \ {
-      \   'group': 'Text decoration',
-      \   'mode': 'n',
-      \   'key': '<Leader>mb',
-      \   'description': 'Apply bold formatting',
-      \   'rhs': ':<C-U>set operatorfunc=<SID>set_markdown_bold<CR>g@',
-      \ },
-      \ {
-      \   'group': 'Text decoration',
-      \   'mode': 'x',
-      \   'key': '<Leader>mb',
-      \   'description': 'Apply bold formatting to selection',
-      \   'rhs': ':<C-U>call <SID>set_markdown_bold_visual()<CR>',
-      \ },
-      \ {
-      \   'group': 'Text decoration',
-      \   'mode': 'n',
-      \   'key': '<Leader>mi',
-      \   'description': 'Apply italic formatting',
-      \   'rhs': ':<C-U>set operatorfunc=<SID>set_markdown_italic<CR>g@',
-      \ },
-      \ {
-      \   'group': 'Text decoration',
-      \   'mode': 'x',
-      \   'key': '<Leader>mi',
-      \   'description': 'Apply italic formatting to selection',
-      \   'rhs': ':<C-U>call <SID>set_markdown_italic_visual()<CR>',
-      \ },
-      \ {
-      \   'group': 'Text decoration',
-      \   'mode': 'n',
-      \   'key': '<Leader>mu',
-      \   'description': 'Remove emphasis at cursor',
-      \   'rhs': ':<C-u>call <SID>remove_markdown_emphasis()<CR>',
-      \ },
-      \ {
-      \   'group': 'List',
-      \   'mode': 'x',
-      \   'key': '<Leader>mr',
-      \   'description': 'Renumber ordered list',
-      \   'rhs': ':<C-u>''<,''>call <SID>renumber_markdown_list()<CR>',
-      \ },
-      \ {
-      \   'group': 'Link',
-      \   'mode': 'n',
-      \   'key': '<Leader>ml',
-      \   'description': 'Insert Markdown link',
-      \   'rhs': ':<C-u>call <SID>insert_markdown_link()<CR>',
-      \ },
-      \ {
-      \   'group': 'Link',
-      \   'mode': 'n',
-      \   'key': '<Leader>mll',
-      \   'description': 'Insert Markdown link with title',
-      \   'rhs': ':<C-u>call <SID>insert_markdown_link_with_title()<CR>',
-      \ },
-      \ {
-      \   'group': 'List',
-      \   'mode': 'n',
-      \   'key': '<Leader>mt',
-      \   'description': 'Toggle task list marker',
-      \   'rhs': ':<C-u>call <SID>toggle_markdown_todo(line(''.''), line(''.''))<CR>',
-      \ },
-      \ {
-      \   'group': 'List',
-      \   'mode': 'x',
-      \   'key': '<Leader>mt',
-      \   'description': 'Toggle task list markers in selection',
-      \   'rhs': ':<C-u>call <SID>toggle_markdown_todo(line("''<"), line("''>"))<CR>',
-      \ },
-      \ ]
-
-function! s:define_markdown_mappings() abort
-  for l:item in s:markdown_mappings
-    execute l:item.mode .
-          \ 'noremap <silent> ' .
-          \ l:item.key . ' ' . l:item.rhs
-  endfor
-endfunction
-
-call s:define_markdown_mappings()
-
-" }}}
-" {{{ Help
-
-function! s:show_markdown_help() abort
-  let l:lines = ['Markdown mappings', '']
-
-  let l:current_group = ''
-
-  for l:item in s:markdown_mappings
-    if l:current_group !=# l:item.group
-      if !empty(l:current_group)
-        call add(l:lines, '')
-      endif
-
-      let l:current_group = l:item.group
-      call add(l:lines, l:current_group)
-    endif
-
-    call add(l:lines, printf(
-      \ '  %-18s %s (%s)',
-      \ l:item.key,
-      \ l:item.description,
-      \ l:item.mode ==# 'x' ? 'Visual mode' : 'Normal mode'))
-  endfor
-
-  call popup_create(l:lines, {
-        \ 'title': ' Markdown Help ',
-        \ 'padding': [1, 2, 1, 2],
-        \ 'border': [],
-        \ 'mapping': 1,
-        \ 'filter': 'popup_filter_menu',
-        \ })
-endfunction
-
-nnoremap <silent> <Leader>mh :<C-u>call <SID>show_markdown_help()<CR>
 
 " }}}
 " }}}
