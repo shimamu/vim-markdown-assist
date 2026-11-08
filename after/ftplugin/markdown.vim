@@ -9,8 +9,6 @@ setlocal comments=
 setlocal formatoptions-=c
 setlocal formatoptions+=r
 
-let mapleader = "\<Space>"
-
 " 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
 " s:set_markdown_header(level) {{{3
