@@ -55,17 +55,101 @@ xnoremap <buffer> <Leader>mc :call <SID>insert_code_block()<CR>
 
 " 4.10 Tables (extension) {{{2
 " s:table_format() {{{3
-function! s:table_format() range
+function! s:table_format(...) range
   if s:is_table_line(line('.'))
     call s:format_table()
+    return
+  endif
+
+  if a:0 == 2
+    let l:start = min([a:1, a:2])
+    let l:end = max([a:1, a:2])
   else
-    call s:create_table(a:firstline, a:lastline)
+    let l:start = line('.')
+    let l:end = line('.')
+  endif
+
+  if s:is_csv_range(l:start, l:end)
+    call s:convert_csv_table(l:start, l:end)
+    call cursor(l:start, 1)
+    call s:format_table()
+  else
+    call s:create_table(l:start, l:end)
   endif
 endfunction
 
 " s:is_table_line() {{{3
 function! s:is_table_line(lnum)
   return getline(a:lnum) =~# '^\s*|'
+endfunction
+
+" s:is_csv_line() {{{3
+function! s:is_csv_line(lnum)
+  return getline(a:lnum) =~# ','
+endfunction
+
+" s:is_csv_range() {{{3
+function! s:is_csv_range(start, end)
+  for l:lnum in range(a:start, a:end)
+    if !s:is_csv_line(l:lnum)
+      return 0
+    endif
+  endfor
+
+  return 1
+endfunction
+
+" s:find_csv_range() {{{3
+function! s:find_csv_range(lnum)
+  let l:start = a:lnum
+  let l:end = a:lnum
+
+  " Find the first CSV line.
+  while l:start > 1 && s:is_csv_line(l:start - 1)
+    let l:start -= 1
+  endwhile
+
+  " Find the last CSV line.
+  while l:end < line('$') && s:is_csv_line(l:end + 1)
+    let l:end += 1
+  endwhile
+
+  return [l:start, l:end]
+endfunction
+
+" s:convert_csv_table() {{{3
+function! s:convert_csv_table(start, end)
+  let l:lines = getline(a:start, a:end)
+  let l:table = []
+
+  for l:line in l:lines
+    let l:line = substitute(l:line, '\s*,\s*', ' | ', 'g')
+    call add(l:table, '| ' . l:line . ' |')
+  endfor
+
+  " Insert a centered alignment row after the first row.
+  let l:column_count = len(split(l:lines[0], ',', 1))
+  let l:separator = repeat([':--:'], l:column_count)
+  call insert(l:table, '|' . join(l:separator, '|') . '|', 1)
+
+  " Add an empty data row when only one row is selected.
+  if len(l:lines) == 1
+    call add(l:table, '|' . join(repeat([''], l:column_count), '|') . '|')
+  endif
+
+  " Replace only the specified range.
+  call setline(a:start, l:table[0])
+
+  if len(l:table) > 1
+    call append(a:start, l:table[1:])
+  endif
+
+  " Delete only the original lines that were replaced.
+  if a:end > a:start
+    call deletebufline('%',
+          \ a:start + len(l:table),
+          \ a:start + len(l:table) + a:end - a:start - 1)
+  endif
 endfunction
 
 " s:create_table() {{{3
@@ -314,7 +398,7 @@ endfunction
 
 " mappings {{{3
 nnoremap <buffer> <Leader>mf :<C-u>call <SID>table_format()<CR>
-xnoremap <buffer> <Leader>mf :call <SID>table_format()<CR>
+xnoremap <buffer> <Leader>mf :<C-u>call <SID>table_format(line("'<"), line("'>"))<CR>
 
 nnoremap <buffer> <Leader>mar :<C-u>call <SID>add_table_column('right')<CR>
 nnoremap <buffer> <Leader>mal :<C-u>call <SID>add_table_column('left')<CR>
