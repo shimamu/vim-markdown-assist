@@ -90,7 +90,7 @@ nnoremap <buffer> <expr> o "o\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1)<
 nnoremap <buffer> <expr> O "O\<C-r>=<SID>markdown_list_marker(line('.') + 1, -1)<CR>"
 
 " s:renumber_markdown_list() {{{3
-function! s:renumber_markdown_list() range
+function! s:renumber_markdown_list(start_from_one) range
   let l:counters = {}
   let l:delimiters = {}
 
@@ -114,7 +114,9 @@ function! s:renumber_markdown_list() range
       if has_key(l:counters, l:key)
         let l:counters[l:key] += 1
       else
-        let l:counters[l:key] = 1
+        let l:counters[l:key] = a:start_from_one
+          \ ? 1
+          \ : str2nr(l:match[2])
         let l:delimiters[l:key] = l:match[3]
       endif
 
@@ -127,7 +129,8 @@ function! s:renumber_markdown_list() range
   endfor
 endfunction
 
-xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list()<CR>
+xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list(0)<CR>
+xnoremap <buffer> <Leader>mr1 :<C-u>'<,'>call <SID>renumber_markdown_list(1)<CR>
 
 " 5.3 Task list items (extension) {{{2
 " s:markdown_todo_marker() {{{3
