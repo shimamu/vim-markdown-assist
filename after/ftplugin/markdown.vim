@@ -57,27 +57,190 @@ xnoremap <buffer> <Leader>mc :call <SID>insert_code_block()<CR>
 
 " 4.10 Tables (extension) {{{2
 " s:table_format() {{{3
-function! s:table_format()
-  let l:pos = getpos('.')
-  normal! {
-  " Search instead of `normal! j` because of the table at beginning of file edge case.
-  call search('|')
-  normal! j
-  " Remove everything that is not a pipe, colon or hyphen next to a colon othewise
-  " well formated tables would grow because of addition of 2 spaces on the separator
-  " line by Tabularize /|.
-  let l:flags = (&gdefault ? '' : 'g')
-  execute 's/\(:\@<!-:\@!\|[^|:-]\)//e' . l:flags
-  execute 's/--/-/e' . l:flags
-  Tabularize /|
-  " Move colons for alignment to left or right side of the cell.
-  execute 's/:\( \+\)|/\1:|/e' . l:flags
-  execute 's/|\( \+\):/|:\1/e' . l:flags
-  execute 's/ /-/' . l:flags
-  call setpos('.', l:pos)
+function! s:table_format() range
+  if s:is_table_line(line('.'))
+    call s:format_table()
+  else
+    call s:create_table(a:firstline, a:lastline)
+  endif
 endfunction
 
-command! MarkdownTableFormat call s:table_format()
+" s:is_table_line() {{{3
+function! s:is_table_line(lnum)
+  return getline(a:lnum) =~# '^\s*|'
+endfunction
+
+" s:create_table() {{{3
+function! s:create_table(start, end)
+  let l:lines = getline(a:start, a:end)
+
+  " An empty line creates an empty table.
+  if len(l:lines) == 1 && empty(trim(l:lines[0]))
+    let l:lines = ['', '']
+  endif
+
+  let l:width = 0
+  for l:line in l:lines
+    let l:width = max([
+          \ l:width,
+          \ strdisplaywidth(l:line),
+          \ ])
+  endfor
+
+  " Ensure a minimum separator width of 3.
+  let l:width = max([3, l:width])
+
+  let l:table = [
+        \ '| ' . l:lines[0] . repeat(' ', l:width - strdisplaywidth(l:lines[0])) . ' |',
+        \ '| :' . repeat('-', l:width - 2) . ': |',
+        \ ]
+
+  if len(l:lines) == 1
+    call add(l:table, '| ' . repeat(' ', l:width) . ' |')
+  else
+    for l:line in l:lines[1:]
+      call add(l:table,
+            \ '| ' . l:line . repeat(' ', l:width - strdisplaywidth(l:line)) . ' |')
+    endfor
+  endif
+
+  call setline(a:start, l:table[0])
+  call append(a:start, l:table[1:])
+
+  if a:end > a:start
+    call deletebufline('%',
+          \ a:start + len(l:table),
+          \ a:end + len(l:table) - 1)
+  endif
+
+  call cursor(a:start, 1)
+endfunction
+
+"s:format_table() {{{3
+function! s:format_table()
+  let l:lnum = line('.')
+  let l:start = l:lnum
+  let l:end = l:lnum
+
+  " Find the first table line.
+  while l:start > 1 && s:is_table_line(l:start - 1)
+    let l:start -= 1
+  endwhile
+
+  " Find the last table line.
+  while l:end < line('$') && s:is_table_line(l:end + 1)
+    let l:end += 1
+  endwhile
+
+  let l:lines = getline(l:start, l:end)
+  let l:rows = []
+  let l:alignments = []
+  let l:widths = []
+
+  " Parse rows and determine column widths.
+  for l:line in l:lines
+    let l:cells = split(trim(l:line, ' |'), '|', 1)
+    let l:cells = map(l:cells, 'trim(v:val)')
+
+    if s:is_separator_row(l:cells)
+      let l:alignments = map(copy(l:cells), 's:get_alignment(v:val)')
+      call add(l:rows, {'separator': 1, 'cells': l:cells})
+    else
+      call add(l:rows, {'separator': 0, 'cells': l:cells})
+
+      for l:i in range(len(l:cells))
+        if len(l:widths) <= l:i
+          call add(l:widths, 0)
+        endif
+
+        let l:widths[l:i] = max([
+              \ l:widths[l:i],
+              \ strdisplaywidth(l:cells[l:i]),
+              \ ])
+      endfor
+    endif
+  endfor
+
+  let l:column_count = len(l:widths)
+
+  if l:column_count == 0
+    return
+  endif
+
+  " Ensure every row has the same number of columns.
+  for l:row in l:rows
+    while len(l:row.cells) < l:column_count
+      call add(l:row.cells, '')
+    endwhile
+  endfor
+
+  " Ensure the separator has enough room for alignment markers.
+  for l:i in range(l:column_count)
+    let l:widths[l:i] = max([3, l:widths[l:i]])
+  endfor
+
+  " Format rows.
+  let l:formatted = []
+
+  for l:row in l:rows
+    let l:cells = []
+
+    for l:i in range(l:column_count)
+      let l:width = l:widths[l:i]
+
+      if l:row.separator
+        let l:alignment = get(l:alignments, l:i, 'none')
+        let l:hyphens = repeat('-', max([1, l:width - (l:alignment ==# 'center' ? 2 : l:alignment ==# 'none' ? 0 : 1)]))
+
+        if l:alignment ==# 'left'
+          let l:cell = ':' . l:hyphens
+        elseif l:alignment ==# 'right'
+          let l:cell = l:hyphens . ':'
+        elseif l:alignment ==# 'center'
+          let l:cell = ':' . l:hyphens . ':'
+        else
+          let l:cell = repeat('-', l:width)
+        endif
+      else
+        let l:cell = l:row.cells[l:i]
+        let l:cell .= repeat(' ', l:width - strdisplaywidth(l:cell))
+      endif
+
+      call add(l:cells, ' ' . l:cell . ' ')
+    endfor
+
+    call add(l:formatted, '|' . join(l:cells, '|') . '|')
+  endfor
+
+  call setline(l:start, l:formatted)
+  call cursor(l:lnum, 1)
+endfunction
+
+" s:is_separator_row() {{{3
+function! s:is_separator_row(cells)
+  return !empty(a:cells)
+        \ && empty(filter(copy(a:cells), 'v:val !~# "^:*-\\+:*$"'))
+endfunction
+
+" s:get_alignment() {{{3
+function! s:get_alignment(cell)
+  let l:left = a:cell =~# '^:'
+  let l:right = a:cell =~# ':$'
+
+  if l:left && l:right
+    return 'center'
+  elseif l:left
+    return 'left'
+  elseif l:right
+    return 'right'
+  endif
+
+  return 'none'
+endfunction
+
+" mappings {{{3
+nnoremap <buffer> <Leader>mf :<C-u>call <SID>table_format()<CR>
+xnoremap <buffer> <Leader>mf :call <SID>table_format()<CR>
 
 " 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
