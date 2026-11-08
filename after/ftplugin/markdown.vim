@@ -66,9 +66,11 @@ command! MarkdownTableFormat call s:table_format()
 
 " 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
+" local options {{{3
 setlocal comments+=n:>
 
 " 5.2 List items {{{2
+" local options {{{3
 setlocal comments+=b:*,b:-,b:+
 
 " s:markdown_list_marker() {{{3
@@ -196,6 +198,7 @@ xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
 
 " 6. Inlines {{{1
 " 6.4 Emphasis and strong emphasis {{{2
+" constants {{{3
 let s:EMPHASIS_BOLD = "**"
 let s:EMPHASIS_ITALIC = "_"
 
