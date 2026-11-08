@@ -11,7 +11,7 @@ setlocal formatoptions+=r
 
 let mapleader = "\<Space>"
 
-" 4 Leaf blocks {{{1
+" 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
 function! s:set_markdown_header(level)
   if a:level < 0 || a:level > 6
@@ -38,7 +38,7 @@ nnoremap <buffer> <Leader>mh3 :<C-u>call <SID>set_markdown_header(3)<CR>
 nnoremap <buffer> <Leader>mh4 :<C-u>call <SID>set_markdown_header(4)<CR>
 nnoremap <buffer> <Leader>mh5 :<C-u>call <SID>set_markdown_header(5)<CR>
 nnoremap <buffer> <Leader>mh6 :<C-u>call <SID>set_markdown_header(6)<CR>
-" }}}
+
 " 4.10 Tables (extension) {{{2
 function! s:table_format()
   let l:pos = getpos('.')
@@ -61,12 +61,11 @@ function! s:table_format()
 endfunction
 
 command! MarkdownTableFormat call s:table_format()
-" }}}
-" }}}
-" 5 Container blocks {{{1
+
+" 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
 setlocal comments+=n:>
-" }}}
+
 " 5.2 List items {{{2
 setlocal comments+=b:*,b:-,b:+
 
@@ -123,7 +122,7 @@ function! s:renumber_markdown_list() range
 endfunction
 
 xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list()<CR>
-" }}}
+
 " 5.3 Task list items (extension) {{{2
 function! s:markdown_todo_marker(lnum) abort
   let l:line = getline(a:lnum)
@@ -190,9 +189,8 @@ nnoremap <Leader>m<Space> :<C-u>call <SID>set_todo(0)<CR>
 " Visual mode
 xnoremap <Leader>mx :<C-u>'<,'>call <SID>set_todo(1)<CR>
 xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
-" }}}
-" }}}
-" 6 Inlines {{{1
+
+" 6. Inlines {{{1
 " 6.4 Emphasis and strong emphasis {{{2
 let s:EMPHASIS_BOLD = "**"
 let s:EMPHASIS_ITALIC = "_"
@@ -373,7 +371,7 @@ nnoremap <buffer> <Leader>mi :<C-u>set operatorfunc=<SID>set_markdown_italic<CR>
 xnoremap <buffer> <Leader>mi :<C-u>call <SID>set_markdown_italic_visual()<CR>
 
 nnoremap <buffer> <Leader>mu :<C-u>call <SID>remove_markdown_emphasis()<CR>
-" }}}
+
 " 6.6 Links {{{2
 function! s:get_clipboard_url()
   if executable('wl-paste')
@@ -457,8 +455,6 @@ endfunction
 
 nnoremap <buffer> <Leader>ml :<C-u>call <SID>insert_markdown_link()<CR>
 nnoremap <buffer> <Leader>mll :<C-u>call <SID>insert_markdown_link_with_title()<CR>
-" }}}
-" }}}
 
 " {{{1 Custom features
 " {{{2 Completion
@@ -473,6 +469,3 @@ function! Markdown_complete()
 endfunction
 
 inoremap <f5> <C-r>=Markdown_complete()<CR>
-
-" }}}
-" }}}
