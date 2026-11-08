@@ -1,15 +1,13 @@
 " GFM Specification: 0.29-gfm (2019-04-06)
 " https://github.github.com/gfm/
 
-" vim:set ts=8 sts=2 sw=2 tw=0:
-" vim:set foldmethod=marker:
 
 setlocal comments=
 set formatoptions=tcroqln
 setlocal formatoptions-=c
 setlocal formatoptions+=r
 
-" 4. Leaf blocks {{{1
+" GFM Spec 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
 " s:set_markdown_header(level) {{{3
 function! s:set_markdown_header(level)
@@ -403,7 +401,7 @@ xnoremap <buffer> <Leader>mf :<C-u>call <SID>table_format(line("'<"), line("'>")
 nnoremap <buffer> <Leader>mar :<C-u>call <SID>add_table_column('right')<CR>
 nnoremap <buffer> <Leader>mal :<C-u>call <SID>add_table_column('left')<CR>
 
-" 5. Container blocks {{{1
+" GFM Spec 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
 " local options {{{3
 setlocal comments+=n:>
@@ -538,7 +536,7 @@ nnoremap <Leader>m<Space> :<C-u>call <SID>set_todo(0)<CR>
 xnoremap <Leader>mx :<C-u>'<,'>call <SID>set_todo(1)<CR>
 xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
 
-" 6. Inlines {{{1
+" GFM Spec 6. Inlines {{{1
 " 6.4 Emphasis and strong emphasis {{{2
 " constants {{{3
 let s:EMPHASIS_BOLD = "**"
@@ -833,3 +831,7 @@ function! Markdown_complete()
 endfunction
 
 inoremap <f5> <C-r>=Markdown_complete()<CR>
+
+" Modeline {{{1
+" vim:set ts=8 sts=2 sw=2 tw=0:
+" vim:set foldmethod=marker:
