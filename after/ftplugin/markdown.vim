@@ -11,15 +11,6 @@ setlocal formatoptions+=r
 
 let mapleader = "\<Space>"
 
-let s:EMPHASIS_BOLD = "**"
-let s:EMPHASIS_ITALIC = "_"
-let s:INSERT = "i"
-let s:APPEND = "a"
-let s:HEADERS_REGEXP = '\v^(#|.+\n(\=+|-+)$)'
-let s:HEADER_LINE_REGEXP = '\v^.+\n(\=+|-+)$'
-let s:NEXT = 1
-let s:PREV = -1
-
 " 4 Leaf blocks {{{1
 " 4.2 ATX headings {{{2
 function! s:set_markdown_header(level)
@@ -203,6 +194,9 @@ xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
 " }}}
 " 6 Inlines {{{1
 " 6.4 Emphasis and strong emphasis {{{2
+let s:EMPHASIS_BOLD = "**"
+let s:EMPHASIS_ITALIC = "_"
+
 function! s:wrap_text_char(start, end, wrapper) abort
   let l:start_line_no = a:start[1]
   let l:start_col = a:start[2]
