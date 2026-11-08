@@ -40,6 +40,21 @@ nnoremap <buffer> <Leader>mh4 :<C-u>call <SID>set_markdown_header(4)<CR>
 nnoremap <buffer> <Leader>mh5 :<C-u>call <SID>set_markdown_header(5)<CR>
 nnoremap <buffer> <Leader>mh6 :<C-u>call <SID>set_markdown_header(6)<CR>
 
+" 4.5 Fenced code blocks {{{3
+" constants {{{3
+let s:CODE_BLOCK_MARKER = '```'
+
+" s:insert_code_block() {{{3
+function! s:insert_code_block() range
+  call append(a:firstline - 1, s:CODE_BLOCK_MARKER)
+  call append(a:lastline + 1, s:CODE_BLOCK_MARKER)
+
+  call cursor(a:firstline + 1, 1)
+endfunction
+
+nnoremap <buffer> <Leader>mc :<C-u>call <SID>insert_code_block()<CR>
+xnoremap <buffer> <Leader>mc :call <SID>insert_code_block()<CR>
+
 " 4.10 Tables (extension) {{{2
 " s:table_format() {{{3
 function! s:table_format()
