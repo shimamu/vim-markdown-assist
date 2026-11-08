@@ -1,11 +1,18 @@
 " GFM Specification: 0.29-gfm (2019-04-06)
 " https://github.github.com/gfm/
 
-
+" Local options {{{1
+" Comment leader {{{2
 setlocal comments=
-set formatoptions=tcroqln
-setlocal formatoptions-=c
+
+" Continue comments on Enter {{{2
 setlocal formatoptions+=r
+
+" Continue comments with o and O {{{2
+setlocal formatoptions+=o
+
+" Numbered list formatting {{{2
+setlocal formatoptions+=n
 
 " GFM Spec 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
