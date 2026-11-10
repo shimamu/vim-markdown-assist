@@ -43,7 +43,7 @@ nnoremap <buffer> <Leader>mh4 :<C-u>call <SID>set_markdown_header(4)<CR>
 nnoremap <buffer> <Leader>mh5 :<C-u>call <SID>set_markdown_header(5)<CR>
 nnoremap <buffer> <Leader>mh6 :<C-u>call <SID>set_markdown_header(6)<CR>
 
-" 4.5 Fenced code blocks {{{3
+" 4.5 Fenced code blocks {{{2
 " constants {{{3
 let s:CODE_BLOCK_MARKER = '```'
 
