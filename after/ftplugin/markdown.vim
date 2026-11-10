@@ -476,6 +476,137 @@ endfunction
 xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list(0)<CR>
 xnoremap <buffer> <Leader>mr1 :<C-u>'<,'>call <SID>renumber_markdown_list(1)<CR>
 
+" s:format_item(start, end) abort {{{3
+function! s:format_item(start, end) abort
+  let l:lines = getline(a:start, a:end)
+  let l:match = matchlist(
+        \ l:lines[0],
+        \ '^\(\s*\)\([-*+]\s\+\(\[[ xX]\]\s\+\)\?\)\(.*\)$')
+
+  if empty(l:match)
+    return
+  endif
+
+  let l:indent = l:match[1]
+  let l:marker = l:match[2]
+  let l:continuation_indent =
+        \ l:indent . repeat(' ', strdisplaywidth(l:marker))
+
+  " Remove the list marker and indentation
+  let l:lines[0] = l:match[4]
+
+  for l:i in range(1, len(l:lines) - 1)
+    let l:lines[l:i] = substitute(
+          \ l:lines[l:i],
+          \ '^' . escape(l:continuation_indent, '\'),
+          \ '', '')
+  endfor
+
+  call setline(a:start, l:lines)
+
+  " Temporarily disable formatexpr and adjust textwidth
+  let l:formatexpr = &l:formatexpr
+  let l:textwidth = &l:textwidth
+
+  if l:textwidth > 0
+    let &l:textwidth = max([
+          \ 1,
+          \ l:textwidth
+          \ - strdisplaywidth(l:indent . l:marker)
+          \ ])
+  endif
+
+  setlocal formatexpr=
+
+  " Record the line count before formatting
+  let l:line_count = line('$')
+
+  try
+    " Run the default formatting on the current item
+    call cursor(a:start, 1)
+
+    if a:end > a:start
+      execute 'normal! V' . (a:end - a:start) . 'jgq'
+    else
+      normal! Vgq
+    endif
+  finally
+    let &l:formatexpr = l:formatexpr
+    let &l:textwidth = l:textwidth
+  endtry
+
+  " Calculate the formatted range
+  let l:formatted_end = a:end + (line('$') - l:line_count)
+
+  " Restore the list marker and indentation
+  let l:lines = getline(a:start, l:formatted_end)
+
+  let l:lines[0] = l:indent . l:marker . l:lines[0]
+
+  for l:i in range(1, len(l:lines) - 1)
+    if l:lines[l:i] !~# '^\s*$'
+      let l:lines[l:i] = l:continuation_indent . l:lines[l:i]
+    endif
+  endfor
+
+  call setline(a:start, l:lines)
+endfunction
+
+" s:format() abort {{{3
+function! s:format() abort
+  let l:start = v:lnum
+  let l:end = l:start + v:count - 1
+  let l:lines = getline(l:start, l:end)
+
+  " Find the first list item, skipping leading blank lines
+  let l:first_item = -1
+
+  for l:i in range(0, len(l:lines) - 1)
+    if l:lines[l:i] =~# '^\s*$'
+      continue
+    endif
+
+    if l:lines[l:i] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
+      let l:first_item = l:i
+    endif
+
+    break
+  endfor
+
+  if l:first_item < 0
+    return 1
+  endif
+
+  " Find the starting line of each list item
+  let l:item_starts = [l:start + l:first_item]
+
+  for l:i in range(l:first_item + 1, len(l:lines) - 1)
+    if l:lines[l:i] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
+      call add(l:item_starts, l:start + l:i)
+    endif
+  endfor
+
+  " Format each item from bottom to top
+  for l:i in reverse(range(0, len(l:item_starts) - 1))
+    let l:item_start = l:item_starts[l:i]
+    let l:item_end = l:i < len(l:item_starts) - 1
+          \ ? l:item_starts[l:i + 1] - 1
+          \ : l:end
+
+    " Exclude trailing blank lines from the current item
+    while l:item_end > l:item_start
+          \ && getline(l:item_end) =~# '^\s*$'
+      let l:item_end -= 1
+    endwhile
+
+    call s:format_item(l:item_start, l:item_end)
+  endfor
+
+  return 0
+endfunction
+
+setlocal formatexpr=<SID>format()
+
 " 5.3 Task list items (extension) {{{2
 " s:markdown_todo_marker() {{{3
 function! s:markdown_todo_marker(lnum) abort
