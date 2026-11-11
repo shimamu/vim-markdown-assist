@@ -675,6 +675,17 @@ xnoremap <Leader>mx :<C-u>'<,'>call <SID>set_todo(1)<CR>
 xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
 
 " GFM Spec 6. Inlines {{{1
+" 6.3 Code spans {{{2
+" constants {{{3
+let s:CODE_SPAN = "`"
+
+" s:set_markdown_code() {{{3
+function! s:set_markdown_code(type) abort
+  call s:wrap_text(a:type, s:CODE_SPAN)
+endfunction
+
+nnoremap <buffer> <Leader>mc :<C-u>set operatorfunc=<SID>set_markdown_code<CR>g@
+
 " 6.4 Emphasis and strong emphasis {{{2
 " constants {{{3
 let s:EMPHASIS_BOLD = "**"
@@ -805,30 +816,38 @@ function! s:set_markdown_bold(type) abort
   call s:wrap_text(a:type, s:EMPHASIS_BOLD)
 endfunction
 
+nnoremap <buffer> <Leader>mb :<C-u>set operatorfunc=<SID>set_markdown_bold<CR>g@
+
 " s:set_markdown_bold_visual() {{{3
 function! s:set_markdown_bold_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_BOLD)
 endfunction
+
+xnoremap <buffer> <Leader>mb :<C-u>call <SID>set_markdown_bold_visual()<CR>
 
 " s:set_markdown_italic() {{{3
 function! s:set_markdown_italic(type) abort
   call s:wrap_text(a:type, s:EMPHASIS_ITALIC)
 endfunction
 
+nnoremap <buffer> <Leader>mi :<C-u>set operatorfunc=<SID>set_markdown_italic<CR>g@
+
 " s:set_markdown_italic_visual() {{{3
 function! s:set_markdown_italic_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_ITALIC)
 endfunction
 
-" s:remove_markdown_emphasis() {{{3
-function! s:remove_markdown_emphasis() abort
+xnoremap <buffer> <Leader>mi :<C-u>call <SID>set_markdown_italic_visual()<CR>
+
+" s:remove_markdown_wrapper() {{{3
+function! s:remove_markdown_wrapper() abort
   let l:line = getline('.')
   let l:col = col('.')
   let l:nearest_start = -1
   let l:nearest_end = -1
   let l:nearest_wrapper = ''
 
-  for l:wrapper in [s:EMPHASIS_BOLD, s:EMPHASIS_ITALIC]
+  for l:wrapper in [s:CODE_SPAN, s:EMPHASIS_BOLD, s:EMPHASIS_ITALIC]
     let l:wrapper_len = strlen(l:wrapper)
     let l:start = strridx(strpart(l:line, 0, l:col - 1), l:wrapper)
     let l:end = stridx(l:line, l:wrapper, l:col - 1)
@@ -859,13 +878,7 @@ function! s:remove_markdown_emphasis() abort
   call setline('.', l:new_line)
 endfunction
 
-nnoremap <buffer> <Leader>mb :<C-u>set operatorfunc=<SID>set_markdown_bold<CR>g@
-xnoremap <buffer> <Leader>mb :<C-u>call <SID>set_markdown_bold_visual()<CR>
-
-nnoremap <buffer> <Leader>mi :<C-u>set operatorfunc=<SID>set_markdown_italic<CR>g@
-xnoremap <buffer> <Leader>mi :<C-u>call <SID>set_markdown_italic_visual()<CR>
-
-nnoremap <buffer> <Leader>mu :<C-u>call <SID>remove_markdown_emphasis()<CR>
+nnoremap <buffer> <Leader>mu :<C-u>call <SID>remove_markdown_wrapper()<CR>
 
 " 6.6 Links {{{2
 " s:get_clipboard_url() {{{3
