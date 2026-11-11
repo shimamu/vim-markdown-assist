@@ -907,14 +907,12 @@ function! s:get_clipboard_url()
   elseif has('clipboard')
     let l:url = getreg('+')
   else
-    echoerr 'Clipboard is not available'
     return ''
   endif
 
   let l:url = trim(l:url)
 
   if l:url !~# '^https\?://'
-    echoerr 'Clipboard does not contain a valid URL'
     return ''
   endif
 
@@ -943,11 +941,6 @@ endfunction
 " s:insert_markdown_link() {{{3
 function! s:insert_markdown_link()
   let l:url = s:get_clipboard_url()
-
-  if empty(l:url)
-    return
-  endif
-
   let l:link = '[](' . l:url . ')'
   let l:line = getline('.')
   let l:col = col('.')
@@ -962,18 +955,7 @@ endfunction
 " s:insert_markdown_link_with_title() {{{3
 function! s:insert_markdown_link_with_title()
   let l:url = s:get_clipboard_url()
-
-  if empty(l:url)
-    return
-  endif
-
-  let l:title = s:get_url_title(l:url)
-
-  if empty(l:title)
-    echoerr 'Failed to retrieve page title'
-    return
-  endif
-
+  let l:title = empty(l:url) ? '' : s:get_url_title(l:url)
   let l:link = '[' . l:title . '](' . l:url . ')'
   let l:line = getline('.')
   let l:col = col('.')
@@ -981,7 +963,7 @@ function! s:insert_markdown_link_with_title()
   call setline('.', strpart(l:line, 0, l:col - 1)
         \ . l:link . strpart(l:line, l:col - 1))
 
-  call cursor(line('.'), l:col + strlen(l:link))
+  call cursor(line('.'), l:col + strlen(l:title) + 1)
 endfunction
 
 nnoremap <buffer> <Leader>ml :<C-u>call <SID>insert_markdown_link()<CR>
