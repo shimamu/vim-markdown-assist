@@ -56,7 +56,6 @@ function! s:insert_code_block() range
   call cursor(a:firstline + 1, 1)
 endfunction
 
-nnoremap <buffer> <Leader>mc :<C-u>call <SID>insert_code_block()<CR>
 xnoremap <buffer> <Leader>mc :call <SID>insert_code_block()<CR>
 
 " 4.10 Tables (extension) {{{2
