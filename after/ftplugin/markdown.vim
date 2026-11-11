@@ -476,6 +476,25 @@ endfunction
 xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list(0)<CR>
 xnoremap <buffer> <Leader>mr1 :<C-u>'<,'>call <SID>renumber_markdown_list(1)<CR>
 
+" s:format_text(start, end) abort {{{3
+function! s:format_text(start, end) abort
+  let l:formatexpr = &l:formatexpr
+
+  setlocal formatexpr=
+
+  try
+    call cursor(a:start, 1)
+
+    if a:end > a:start
+      execute 'normal! V' . (a:end - a:start) . 'jgq'
+    else
+      normal! Vgq
+    endif
+  finally
+    let &l:formatexpr = l:formatexpr
+  endtry
+endfunction
+
 " s:format_item(start, end) abort {{{3
 function! s:format_item(start, end) abort
   let l:lines = getline(a:start, a:end)
@@ -553,53 +572,53 @@ function! s:format_item(start, end) abort
 endfunction
 
 " s:format() abort {{{3
+" s:format() abort {{{3
 function! s:format() abort
   let l:start = v:lnum
   let l:end = l:start + v:count - 1
   let l:lines = getline(l:start, l:end)
+  let l:blocks = []
+  let l:i = 0
 
-  " Find the first list item, skipping leading blank lines
-  let l:first_item = -1
-
-  for l:i in range(0, len(l:lines) - 1)
+  " Find paragraphs and list items
+  while l:i < len(l:lines)
     if l:lines[l:i] =~# '^\s*$'
+      let l:i += 1
       continue
     endif
 
-    if l:lines[l:i] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
-      let l:first_item = l:i
-    endif
+    let l:block_start = l:i
+    let l:is_list = l:lines[l:i]
+          \ =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
 
-    break
-  endfor
+    let l:i += 1
 
-  if l:first_item < 0
-    return 1
-  endif
+    while l:i < len(l:lines)
+      if l:lines[l:i] =~# '^\s*$'
+        break
+      endif
 
-  " Find the starting line of each list item
-  let l:item_starts = [l:start + l:first_item]
+      if l:lines[l:i] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
+        break
+      endif
 
-  for l:i in range(l:first_item + 1, len(l:lines) - 1)
-    if l:lines[l:i] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
-      call add(l:item_starts, l:start + l:i)
-    endif
-  endfor
-
-  " Format each item from bottom to top
-  for l:i in reverse(range(0, len(l:item_starts) - 1))
-    let l:item_start = l:item_starts[l:i]
-    let l:item_end = l:i < len(l:item_starts) - 1
-          \ ? l:item_starts[l:i + 1] - 1
-          \ : l:end
-
-    " Exclude trailing blank lines from the current item
-    while l:item_end > l:item_start
-          \ && getline(l:item_end) =~# '^\s*$'
-      let l:item_end -= 1
+      let l:i += 1
     endwhile
 
-    call s:format_item(l:item_start, l:item_end)
+    call add(l:blocks, [
+          \ l:start + l:block_start,
+          \ l:start + l:i - 1,
+          \ l:is_list
+          \ ])
+  endwhile
+
+  " Format blocks from bottom to top
+  for l:block in reverse(l:blocks)
+    if l:block[2]
+      call s:format_item(l:block[0], l:block[1])
+    else
+      call s:format_text(l:block[0], l:block[1])
+    endif
   endfor
 
   return 0
