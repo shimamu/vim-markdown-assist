@@ -17,8 +17,8 @@ setlocal formatoptions+=n
 " GFM Spec 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
 " feat: header insertion and modification (normal mode) {{{3
-" s:set_markdown_header(level) {{{4
-function! s:set_markdown_header(level) abort
+" s:md_set_header(level) {{{4
+function! s:md_set_header(level) abort
   if a:level < 0 || a:level > 6
     return
   endif
@@ -36,13 +36,13 @@ function! s:set_markdown_header(level) abort
   call setline('.', l:line)
 endfunction
 
-nnoremap <buffer> <Leader>mh1 :<C-u>call <SID>set_markdown_header(1)<CR>
-nnoremap <buffer> <Leader>mh2 :<C-u>call <SID>set_markdown_header(2)<CR>
-nnoremap <buffer> <Leader>mh3 :<C-u>call <SID>set_markdown_header(3)<CR>
-nnoremap <buffer> <Leader>mh4 :<C-u>call <SID>set_markdown_header(4)<CR>
-nnoremap <buffer> <Leader>mh5 :<C-u>call <SID>set_markdown_header(5)<CR>
-nnoremap <buffer> <Leader>mh6 :<C-u>call <SID>set_markdown_header(6)<CR>
-nnoremap <buffer> <Leader>mh0 :<C-u>call <SID>set_markdown_header(0)<CR>
+nnoremap <buffer> <Leader>mh1 :<C-u>call <SID>md_set_header(1)<CR>
+nnoremap <buffer> <Leader>mh2 :<C-u>call <SID>md_set_header(2)<CR>
+nnoremap <buffer> <Leader>mh3 :<C-u>call <SID>md_set_header(3)<CR>
+nnoremap <buffer> <Leader>mh4 :<C-u>call <SID>md_set_header(4)<CR>
+nnoremap <buffer> <Leader>mh5 :<C-u>call <SID>md_set_header(5)<CR>
+nnoremap <buffer> <Leader>mh6 :<C-u>call <SID>md_set_header(6)<CR>
+nnoremap <buffer> <Leader>mh0 :<C-u>call <SID>md_set_header(0)<CR>
 
 " 4.5 Fenced code blocks {{{2
 " constants {{{3
