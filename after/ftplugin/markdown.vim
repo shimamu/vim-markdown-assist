@@ -45,18 +45,19 @@ nnoremap <buffer> <Leader>mh6 :<C-u>call <SID>md_set_header(6)<CR>
 nnoremap <buffer> <Leader>mh0 :<C-u>call <SID>md_set_header(0)<CR>
 
 " 4.5 Fenced code blocks {{{2
-" constants {{{3
+" feat: fenced code block wrapping (visual mode) {{{3
+" constants {{{4
 let s:CODE_BLOCK_MARKER = '```'
 
-" s:insert_code_block() {{{3
-function! s:insert_code_block() range
+" s:md_wrap_code_block() {{{4
+function! s:md_wrap_code_block() range
   call append(a:firstline - 1, s:CODE_BLOCK_MARKER)
   call append(a:lastline + 1, s:CODE_BLOCK_MARKER)
 
   call cursor(a:firstline + 1, 1)
 endfunction
 
-xnoremap <buffer> <Leader>mc :call <SID>insert_code_block()<CR>
+xnoremap <buffer> <Leader>mc :call <SID>md_wrap_code_block()<CR>
 
 " 4.10 Tables (extension) {{{2
 " s:table_format() {{{3
