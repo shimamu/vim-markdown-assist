@@ -75,13 +75,9 @@ function! s:table_format(...) range
     let l:end = line('.')
   endif
 
-  if s:is_csv_range(l:start, l:end)
-    call s:convert_csv_table(l:start, l:end)
-    call cursor(l:start, 1)
-    call s:format_table()
-  else
-    call s:create_table(l:start, l:end)
-  endif
+  call s:convert_csv_table(l:start, l:end)
+  call cursor(l:start, 1)
+  call s:format_table()
 endfunction
 
 " s:is_table_line() {{{3
@@ -89,39 +85,6 @@ function! s:is_table_line(lnum)
   return getline(a:lnum) =~# '^\s*|'
 endfunction
 
-" s:is_csv_line() {{{3
-function! s:is_csv_line(lnum)
-  return getline(a:lnum) =~# ','
-endfunction
-
-" s:is_csv_range() {{{3
-function! s:is_csv_range(start, end)
-  for l:lnum in range(a:start, a:end)
-    if !s:is_csv_line(l:lnum)
-      return 0
-    endif
-  endfor
-
-  return 1
-endfunction
-
-" s:find_csv_range() {{{3
-function! s:find_csv_range(lnum)
-  let l:start = a:lnum
-  let l:end = a:lnum
-
-  " Find the first CSV line.
-  while l:start > 1 && s:is_csv_line(l:start - 1)
-    let l:start -= 1
-  endwhile
-
-  " Find the last CSV line.
-  while l:end < line('$') && s:is_csv_line(l:end + 1)
-    let l:end += 1
-  endwhile
-
-  return [l:start, l:end]
-endfunction
 
 " s:convert_csv_table() {{{3
 function! s:convert_csv_table(start, end)
@@ -156,52 +119,6 @@ function! s:convert_csv_table(start, end)
           \ a:start + len(l:table),
           \ a:start + len(l:table) + a:end - a:start - 1)
   endif
-endfunction
-
-" s:create_table() {{{3
-function! s:create_table(start, end)
-  let l:lines = getline(a:start, a:end)
-
-  " An empty line creates an empty table.
-  if len(l:lines) == 1 && empty(trim(l:lines[0]))
-    let l:lines = ['', '']
-  endif
-
-  let l:width = 0
-  for l:line in l:lines
-    let l:width = max([
-          \ l:width,
-          \ strdisplaywidth(l:line),
-          \ ])
-  endfor
-
-  " Ensure a minimum separator width of 3.
-  let l:width = max([3, l:width])
-
-  let l:table = [
-        \ '| ' . l:lines[0] . repeat(' ', l:width - strdisplaywidth(l:lines[0])) . ' |',
-        \ '| :' . repeat('-', l:width - 2) . ': |',
-        \ ]
-
-  if len(l:lines) == 1
-    call add(l:table, '| ' . repeat(' ', l:width) . ' |')
-  else
-    for l:line in l:lines[1:]
-      call add(l:table,
-            \ '| ' . l:line . repeat(' ', l:width - strdisplaywidth(l:line)) . ' |')
-    endfor
-  endif
-
-  call setline(a:start, l:table[0])
-  call append(a:start, l:table[1:])
-
-  if a:end > a:start
-    call deletebufline('%',
-          \ a:start + len(l:table),
-          \ a:end + len(l:table) - 1)
-  endif
-
-  call cursor(a:start, 1)
 endfunction
 
 "s:format_table() {{{3
