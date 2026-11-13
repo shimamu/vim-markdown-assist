@@ -142,10 +142,7 @@ function! s:format_table()
 
   " Parse rows and determine column widths.
   for l:line in l:lines
-    let l:line = substitute(l:line, '^\s*|\s*', '', '')
-    let l:line = substitute(l:line, '\s*|$', '', '')
-    let l:cells = split(l:line, '|', 1)
-    let l:cells = map(l:cells, 'trim(v:val)')
+    let l:cells = s:parse_table_row(l:line)
 
     if s:is_separator_row(l:cells)
       let l:alignments = map(copy(l:cells), 's:get_alignment(v:val)')
@@ -223,6 +220,15 @@ function! s:format_table()
   call cursor(l:lnum, 1)
 endfunction
 
+"s:parse_table_row() {{{4
+function! s:parse_table_row(line)
+  let l:line = substitute(a:line, '^\s*|\s*', '', '')
+  let l:line = substitute(l:line, '\s*|$', '', '')
+  let l:cells = split(l:line, '|', 1)
+
+  return map(l:cells, 'trim(v:val)')
+endfunction
+
 " s:get_table_range() {{{4
 function! s:get_table_range(lnum)
   let l:start = a:lnum
@@ -284,10 +290,7 @@ function! s:md_table_add_column(side)
   let l:insert_column = 0
 
   for l:line in l:lines
-    let l:line = substitute(l:line, '^\s*|\s*', '', '')
-    let l:line = substitute(l:line, '\s*|$', '', '')
-    let l:cells = split(l:line, '|', 1)
-    let l:cells = map(l:cells, 'trim(v:val)')
+    let l:cells = s:parse_table_row(l:line)
 
     let l:insert_at = a:side ==# 'left'
           \ ? l:column
