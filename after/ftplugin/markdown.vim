@@ -121,7 +121,7 @@ function! s:build_table_row(cells)
   return '|' . join(a:cells, '|') . '|'
 endfunction
 
-" s:replace_lines() {{{3
+" s:replace_lines() {{{4
 function! s:replace_lines(start, end, lines)
   call append(a:start - 1, a:lines)
   call deletebufline('%',
@@ -132,8 +132,6 @@ endfunction
 "s:format_table() {{{4
 function! s:format_table()
   let l:lnum = line('.')
-  let l:start = l:lnum
-  let l:end = l:lnum
 
   let [l:start, l:end] = s:get_table_range(line('.'))
 
