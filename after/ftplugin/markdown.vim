@@ -113,24 +113,20 @@ function! s:convert_csv_to_table(start, end)
     call add(l:table, s:build_table_row(l:blank_cells))
   endif
 
-  " Replace only the specified range.
-  call setline(a:start, l:table[0])
-
-  if len(l:table) > 1
-    call append(a:start, l:table[1:])
-  endif
-
-  " Delete only the original lines that were replaced.
-  if a:end > a:start
-    call deletebufline('%',
-          \ a:start + len(l:table),
-          \ a:start + len(l:table) + a:end - a:start - 1)
-  endif
+  call s:replace_lines(a:start, a:end, l:table)
 endfunction
 
 "s:build_table_row() {{{4
 function! s:build_table_row(cells)
   return '|' . join(a:cells, '|') . '|'
+endfunction
+
+" s:replace_lines() {{{3
+function! s:replace_lines(start, end, lines)
+  call append(a:start - 1, a:lines)
+  call deletebufline('%',
+        \ a:start + len(a:lines),
+        \ a:start + len(a:lines) + a:end - a:start)
 endfunction
 
 "s:format_table() {{{4
@@ -314,10 +310,7 @@ function! s:md_table_add_column(side)
     call add(l:formatted, s:build_table_row(l:cells))
   endfor
 
-  call setline(l:start, l:formatted[0])
-  if len(l:formatted) > 1
-    call setline(l:start + 1, l:formatted[1:])
-  endif
+  call s:replace_lines(l:start, l:end, l:formatted)
 
   call cursor(l:lnum, 1)
   call s:format_table()
