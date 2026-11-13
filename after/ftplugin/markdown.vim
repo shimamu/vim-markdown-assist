@@ -60,8 +60,12 @@ endfunction
 xnoremap <buffer> <Leader>mc :call <SID>md_wrap_code_block()<CR>
 
 " 4.10 Tables (extension) {{{2
-" s:table_format() {{{3
-function! s:table_format(...) range
+" feat: convert text and CSV to Markdown table and format it (normal/visual mode) {{{3
+" constants {{{4
+const s:MD_ALIGNMENT_CENTER = ':-:'
+
+" s:md_table_convert() {{{4
+function! s:md_table_convert(...) range
   if s:is_table_line(line('.'))
     call s:format_table()
     return
@@ -75,19 +79,21 @@ function! s:table_format(...) range
     let l:end = line('.')
   endif
 
-  call s:convert_csv_table(l:start, l:end)
+  call s:convert_csv_to_table(l:start, l:end)
   call cursor(l:start, 1)
   call s:format_table()
 endfunction
 
-" s:is_table_line() {{{3
+nnoremap <buffer> <Leader>mf :<C-u>call <SID>md_table_convert()<CR>
+xnoremap <buffer> <Leader>mf :<C-u>call <SID>md_table_convert(line("'<"), line("'>"))<CR>
+
+" s:is_table_line() {{{4
 function! s:is_table_line(lnum)
   return getline(a:lnum) =~# '^\s*|'
 endfunction
 
-
-" s:convert_csv_table() {{{3
-function! s:convert_csv_table(start, end)
+" s:convert_csv_to_table() {{{4
+function! s:convert_csv_to_table(start, end)
   let l:lines = getline(a:start, a:end)
   let l:table = []
 
@@ -98,7 +104,7 @@ function! s:convert_csv_table(start, end)
 
   " Insert a centered alignment row after the first row.
   let l:column_count = len(split(l:lines[0], ',', 1))
-  let l:separator = repeat([':--:'], l:column_count)
+  let l:separator = repeat([s:MD_ALIGNMENT_CENTER], l:column_count)
   call insert(l:table, '|' . join(l:separator, '|') . '|', 1)
 
   " Add an empty data row when only one row is selected.
@@ -121,7 +127,7 @@ function! s:convert_csv_table(start, end)
   endif
 endfunction
 
-"s:format_table() {{{3
+"s:format_table() {{{4
 function! s:format_table()
   let l:lnum = line('.')
   let l:start = l:lnum
@@ -225,13 +231,13 @@ function! s:format_table()
   call cursor(l:lnum, 1)
 endfunction
 
-" s:is_separator_row() {{{3
+" s:is_separator_row() {{{4
 function! s:is_separator_row(cells)
   return !empty(a:cells)
         \ && empty(filter(copy(a:cells), 'v:val !~# "^:*-\\+:*$"'))
 endfunction
 
-" s:get_alignment() {{{3
+" s:get_alignment() {{{4
 function! s:get_alignment(cell)
   let l:left = a:cell =~# '^:'
   let l:right = a:cell =~# ':$'
@@ -247,8 +253,9 @@ function! s:get_alignment(cell)
   return 'none'
 endfunction
 
-" s:add_table_column() {{{3
-function! s:add_table_column(side)
+" feat: table column insertion (normal mode) {{{3
+" s:md_table_add_column() {{{4
+function! s:md_table_add_column(side)
   if !s:is_table_line(line('.'))
     return
   endif
@@ -291,7 +298,7 @@ function! s:add_table_column(side)
     let l:insert_column = l:insert_at
 
     if s:is_separator_row(l:cells)
-      call insert(l:cells, ':--:', l:insert_at)
+      call insert(l:cells, s:MD_ALIGNMENT_CENTER, l:insert_at)
     else
       call insert(l:cells, '', l:insert_at)
     endif
@@ -319,12 +326,8 @@ function! s:add_table_column(side)
   call cursor(l:start, l:column_start + 2)
 endfunction
 
-" mappings {{{3
-nnoremap <buffer> <Leader>mf :<C-u>call <SID>table_format()<CR>
-xnoremap <buffer> <Leader>mf :<C-u>call <SID>table_format(line("'<"), line("'>"))<CR>
-
-nnoremap <buffer> <Leader>mar :<C-u>call <SID>add_table_column('right')<CR>
-nnoremap <buffer> <Leader>mal :<C-u>call <SID>add_table_column('left')<CR>
+nnoremap <buffer> <Leader>mar :<C-u>call <SID>md_table_add_column('right')<CR>
+nnoremap <buffer> <Leader>mal :<C-u>call <SID>md_table_add_column('left')<CR>
 
 " GFM Spec 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
