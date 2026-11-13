@@ -105,7 +105,7 @@ function! s:convert_csv_to_table(start, end)
   " Insert a centered alignment row after the first row.
   let l:column_count = len(split(l:lines[0], ',', 1))
   let l:separator = repeat([s:MD_ALIGNMENT_CENTER], l:column_count)
-  call insert(l:table, '|' . join(l:separator, '|') . '|', 1)
+  call insert(l:table, s:build_table_row(l:separator), 1)
 
   " Add an empty data row when only one row is selected.
   if len(l:lines) == 1
@@ -125,6 +125,11 @@ function! s:convert_csv_to_table(start, end)
           \ a:start + len(l:table),
           \ a:start + len(l:table) + a:end - a:start - 1)
   endif
+endfunction
+
+"s:build_table_row() {{{4
+function! s:build_table_row(cells)
+  return '|' . join(a:cells, '|') . '|'
 endfunction
 
 "s:format_table() {{{4
@@ -213,7 +218,7 @@ function! s:format_table()
       call add(l:cells, ' ' . l:cell . ' ')
     endfor
 
-    call add(l:formatted, '|' . join(l:cells, '|') . '|')
+    call add(l:formatted, s:build_table_row(l:cells))
   endfor
 
   call setline(l:start, l:formatted)
@@ -305,7 +310,7 @@ function! s:md_table_add_column(side)
       call insert(l:cells, '', l:insert_at)
     endif
 
-    call add(l:formatted, '|' . join(l:cells, '|') . '|')
+    call add(l:formatted, s:build_table_row(l:cells))
   endfor
 
   call setline(l:start, l:formatted[0])
