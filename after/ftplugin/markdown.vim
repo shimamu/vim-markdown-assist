@@ -133,15 +133,7 @@ function! s:format_table()
   let l:start = l:lnum
   let l:end = l:lnum
 
-  " Find the first table line.
-  while l:start > 1 && s:is_table_line(l:start - 1)
-    let l:start -= 1
-  endwhile
-
-  " Find the last table line.
-  while l:end < line('$') && s:is_table_line(l:end + 1)
-    let l:end += 1
-  endwhile
+  let [l:start, l:end] = s:get_table_range(line('.'))
 
   let l:lines = getline(l:start, l:end)
   let l:rows = []
@@ -231,6 +223,22 @@ function! s:format_table()
   call cursor(l:lnum, 1)
 endfunction
 
+" s:get_table_range() {{{4
+function! s:get_table_range(lnum)
+  let l:start = a:lnum
+  let l:end = a:lnum
+
+  while l:start > 1 && s:is_table_line(l:start - 1)
+    let l:start -= 1
+  endwhile
+
+  while l:end < line('$') && s:is_table_line(l:end + 1)
+    let l:end += 1
+  endwhile
+
+  return [l:start, l:end]
+endfunction
+
 " s:is_separator_row() {{{4
 function! s:is_separator_row(cells)
   return !empty(a:cells)
@@ -269,16 +277,7 @@ function! s:md_table_add_column(side)
 
   call s:format_table()
 
-  let l:start = l:lnum
-  let l:end = l:lnum
-
-  while l:start > 1 && s:is_table_line(l:start - 1)
-    let l:start -= 1
-  endwhile
-
-  while l:end < line('$') && s:is_table_line(l:end + 1)
-    let l:end += 1
-  endwhile
+  let [l:start, l:end] = s:get_table_range(l:lnum)
 
   let l:lines = getline(l:start, l:end)
   let l:formatted = []
