@@ -109,7 +109,8 @@ function! s:convert_csv_to_table(start, end)
 
   " Add an empty data row when only one row is selected.
   if len(l:lines) == 1
-    call add(l:table, '|' . join(repeat([''], l:column_count), '|') . '|')
+    let l:blank_cells = repeat([''], l:column_count)
+    call add(l:table, s:build_table_row(l:blank_cells))
   endif
 
   " Replace only the specified range.
