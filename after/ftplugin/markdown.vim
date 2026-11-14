@@ -341,7 +341,7 @@ execute 'nnoremap <buffer> <Leader>mal :<C-u>call <SID>md_table_add_column(' . s
 setlocal comments+=n:>
 
 " 5.2 List items {{{2
-" feat: list marker continuation {{{3
+" feat: bullet list continuation {{{3
 " local options {{{4
 setlocal comments+=b:*,b:-,b:+
 
