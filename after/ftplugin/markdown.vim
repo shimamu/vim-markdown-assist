@@ -1,6 +1,13 @@
 " GFM Specification: 0.29-gfm (2019-04-06)
 " https://github.github.com/gfm/
 
+" Global options {{{1
+" Table formatting {{{2
+" Minimum cell width {{{3
+if !exists('g:MD_TABLE_CELL_MIN_WIDTH')
+  let g:MD_TABLE_CELL_MIN_WIDTH = 0
+endif
+
 " Local options {{{1
 " Comment leader {{{2
 setlocal comments=
@@ -182,7 +189,7 @@ function! s:format_table()
   " Ensure the separator has enough room for alignment markers.
   for l:i in range(l:column_count)
     let l:alignment = get(l:alignments, l:i, s:MD_ALIGNMENT_NONE)
-    let l:min_width = l:alignment ==# s:MD_ALIGNMENT_CENTER ? 4 : 3
+    let l:min_width = max([len(l:alignment), g:MD_TABLE_CELL_MIN_WIDTH])
     let l:widths[l:i] = max([l:min_width, l:widths[l:i]])
   endfor
 
@@ -197,7 +204,8 @@ function! s:format_table()
 
       if l:row.separator
         let l:alignment = get(l:alignments, l:i, s:MD_ALIGNMENT_NONE)
-        let l:hyphens = repeat('-', max([1, l:width - (l:alignment ==# s:MD_ALIGNMENT_CENTER ? 2 : l:alignment ==# s:MD_ALIGNMENT_NONE ? 0 : 1)]))
+        let l:colon_count = count(split(l:alignment, '\zs'), ':')
+        let l:hyphens = repeat('-', max([1, l:width - l:colon_count]))
 
         if l:alignment ==# s:MD_ALIGNMENT_LEFT
           let l:cell = ':' . l:hyphens
