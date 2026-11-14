@@ -9,16 +9,17 @@ if !exists('g:MD_TABLE_CELL_MIN_WIDTH')
 endif
 
 " Local options {{{1
-" Comment leader {{{2
+" Automatic formatting {{{2
+" Comment leader {{{3
 setlocal comments=
 
-" Continue comments on Enter {{{2
+" Continue comments on Enter {{{3
 setlocal formatoptions+=r
 
-" Continue comments with o and O {{{2
+" Continue comments with o and O {{{3
 setlocal formatoptions+=o
 
-" Numbered list formatting {{{2
+" Numbered list formatting {{{3
 setlocal formatoptions+=n
 
 " GFM Spec 4. Leaf blocks {{{1
