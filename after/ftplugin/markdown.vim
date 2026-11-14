@@ -62,7 +62,10 @@ xnoremap <buffer> <Leader>mc :call <SID>md_wrap_code_block()<CR>
 " 4.10 Tables (extension) {{{2
 " feat: convert text and CSV to Markdown table and format it (normal/visual mode) {{{3
 " constants {{{4
+const s:MD_ALIGNMENT_LEFT = ':-'
 const s:MD_ALIGNMENT_CENTER = ':-:'
+const s:MD_ALIGNMENT_RIGHT = '-:'
+const s:MD_ALIGNMENT_NONE = '-'
 
 " s:md_table_convert() {{{4
 function! s:md_table_convert(...) range
@@ -178,8 +181,8 @@ function! s:format_table()
 
   " Ensure the separator has enough room for alignment markers.
   for l:i in range(l:column_count)
-    let l:alignment = get(l:alignments, l:i, 'none')
-    let l:min_width = l:alignment ==# 'center' ? 4 : 3
+    let l:alignment = get(l:alignments, l:i, s:MD_ALIGNMENT_NONE)
+    let l:min_width = l:alignment ==# s:MD_ALIGNMENT_CENTER ? 4 : 3
     let l:widths[l:i] = max([l:min_width, l:widths[l:i]])
   endfor
 
@@ -193,14 +196,14 @@ function! s:format_table()
       let l:width = l:widths[l:i]
 
       if l:row.separator
-        let l:alignment = get(l:alignments, l:i, 'none')
-        let l:hyphens = repeat('-', max([1, l:width - (l:alignment ==# 'center' ? 2 : l:alignment ==# 'none' ? 0 : 1)]))
+        let l:alignment = get(l:alignments, l:i, s:MD_ALIGNMENT_NONE)
+        let l:hyphens = repeat('-', max([1, l:width - (l:alignment ==# s:MD_ALIGNMENT_CENTER ? 2 : l:alignment ==# s:MD_ALIGNMENT_NONE ? 0 : 1)]))
 
-        if l:alignment ==# 'left'
+        if l:alignment ==# s:MD_ALIGNMENT_LEFT
           let l:cell = ':' . l:hyphens
-        elseif l:alignment ==# 'right'
+        elseif l:alignment ==# s:MD_ALIGNMENT_RIGHT
           let l:cell = l:hyphens . ':'
-        elseif l:alignment ==# 'center'
+        elseif l:alignment ==# s:MD_ALIGNMENT_CENTER
           let l:cell = ':' . l:hyphens . ':'
         else
           let l:cell = repeat('-', l:width)
@@ -257,14 +260,14 @@ function! s:get_alignment(cell)
   let l:right = a:cell =~# ':$'
 
   if l:left && l:right
-    return 'center'
+    return s:MD_ALIGNMENT_CENTER
   elseif l:left
-    return 'left'
+    return s:MD_ALIGNMENT_LEFT
   elseif l:right
-    return 'right'
+    return s:MD_ALIGNMENT_RIGHT
   endif
 
-  return 'none'
+  return s:MD_ALIGNMENT_NONE
 endfunction
 
 " feat: table column insertion (normal mode) {{{3
@@ -292,7 +295,7 @@ function! s:md_table_add_column(side)
   for l:line in l:lines
     let l:cells = s:parse_table_row(l:line)
 
-    let l:insert_at = a:side ==# 'left'
+    let l:insert_at = a:side ==# s:MD_ALIGNMENT_LEFT
           \ ? l:column
           \ : l:column + 1
     let l:insert_at = min([l:insert_at, len(l:cells)])
