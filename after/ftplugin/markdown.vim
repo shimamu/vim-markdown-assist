@@ -369,8 +369,9 @@ function! s:continue_ordered_list(lnum, offset) abort
   return max([1, str2nr(l:match[1]) + a:offset]) . l:match[2] . ' '
 endfunction
 
-" s:renumber_markdown_list() {{{3
-function! s:renumber_markdown_list(start_from_one) range
+" feat: ordered list renumbering {{{3
+" s:md_renumber_ordered_list() {{{4
+function! s:md_renumber_ordered_list(start_from_one) range
   let l:counters = {}
   let l:delimiters = {}
 
@@ -380,37 +381,37 @@ function! s:renumber_markdown_list(start_from_one) range
 
     if !empty(l:match)
       let l:indent = indent(l:lnum)
-      let l:key = string(l:indent)
+      let l:indent_key = string(l:indent)
 
       " Reset counters and delimiters for deeper indentation levels.
-      for l:key_to_remove in keys(l:counters)
-        if str2nr(l:key_to_remove) > l:indent
-          call remove(l:counters, l:key_to_remove)
-          call remove(l:delimiters, l:key_to_remove)
+      for l:existing_indent_key in keys(l:counters)
+        if str2nr(l:existing_indent_key) > l:indent
+          call remove(l:counters, l:existing_indent_key)
+          call remove(l:delimiters, l:existing_indent_key)
         endif
       endfor
 
       " Initialize the counter and delimiter for the current level.
-      if has_key(l:counters, l:key)
-        let l:counters[l:key] += 1
+      if has_key(l:counters, l:indent_key)
+        let l:counters[l:indent_key] += 1
       else
-        let l:counters[l:key] = a:start_from_one
+        let l:counters[l:indent_key] = a:start_from_one
               \ ? 1
               \ : str2nr(l:match[2])
-        let l:delimiters[l:key] = l:match[3]
+        let l:delimiters[l:indent_key] = l:match[3]
       endif
 
       call setline(
             \ l:lnum,
-            \ l:match[1] . l:counters[l:key] . l:delimiters[l:key] . ' ' .
+            \ l:match[1] . l:counters[l:indent_key] . l:delimiters[l:indent_key] . ' ' .
             \ strpart(l:line, strlen(l:match[0]))
             \ )
     endif
   endfor
 endfunction
 
-xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>renumber_markdown_list(0)<CR>
-xnoremap <buffer> <Leader>mr1 :<C-u>'<,'>call <SID>renumber_markdown_list(1)<CR>
+xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>md_renumber_ordered_list(0)<CR>
+xnoremap <buffer> <Leader>mr1 :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR>
 
 " s:format_text(start, end) abort {{{3
 function! s:format_text(start, end) abort
