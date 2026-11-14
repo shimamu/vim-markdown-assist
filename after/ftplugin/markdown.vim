@@ -454,6 +454,12 @@ function! s:md_format_line_wrapping() abort
           \ })
   endwhile
 
+  " Record the original range before formatting
+  let l:buffer_line_count = line('$')
+  let l:last_block_end = empty(l:format_blocks)
+        \ ? 0
+        \ : l:format_blocks[-1].end
+
   " Format blocks from bottom to top
   for l:block in reverse(l:format_blocks)
     if l:block.is_list_item
@@ -462,6 +468,15 @@ function! s:md_format_line_wrapping() abort
       call s:format_text_wrapping(l:block.start, l:block.end)
     endif
   endfor
+
+  " Restore cursor position to the last formatted line
+  if l:last_block_end > 0
+    let l:formatted_end =
+          \ l:last_block_end + (line('$') - l:buffer_line_count)
+
+    call cursor(l:formatted_end, 1)
+    normal! ^
+  endif
 
   return 0
 endfunction
