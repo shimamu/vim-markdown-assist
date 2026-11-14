@@ -293,6 +293,7 @@ function! s:md_table_add_column(side)
         \ count(split(l:prefix, '\zs'), '|') - 1,
         \ ])
 
+  " Fill missing cells before adding a column.
   call s:format_table()
 
   let [l:start, l:end] = s:get_table_range(l:lnum)
