@@ -336,12 +336,13 @@ execute 'nnoremap <buffer> <Leader>mal :<C-u>call <SID>md_table_add_column(' . s
 
 " GFM Spec 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
-" feat: continuing block quotes {{{3
+" feat: block quote continuation {{{3
 " local options {{{4
 setlocal comments+=n:>
 
 " 5.2 List items {{{2
-" local options {{{3
+" feat: list marker continuation {{{3
+" local options {{{4
 setlocal comments+=b:*,b:-,b:+
 
 " s:markdown_list_marker() {{{3
