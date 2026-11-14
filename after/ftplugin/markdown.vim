@@ -305,11 +305,10 @@ function! s:md_table_add_column(side)
   for l:line in l:lines
     let l:cells = s:parse_table_row(l:line)
 
-    if s:is_separator_row(l:cells)
-      call insert(l:cells, s:MD_ALIGNMENT_CENTER, l:insert_column)
-    else
-      call insert(l:cells, '', l:insert_column)
-    endif
+    let l:cell = s:is_separator_row(l:cells)
+          \ ? s:MD_ALIGNMENT_CENTER
+          \ : ''
+    call insert(l:cells, l:cell, l:insert_column)
 
     call add(l:formatted, s:build_table_row(l:cells))
   endfor
