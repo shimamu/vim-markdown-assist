@@ -298,22 +298,17 @@ function! s:md_table_add_column(side)
 
   let l:lines = getline(l:start, l:end)
   let l:formatted = []
-  let l:insert_column = 0
+  let l:insert_column = a:side ==# s:MD_ALIGNMENT_LEFT
+        \ ? l:column
+        \ : l:column + 1
 
   for l:line in l:lines
     let l:cells = s:parse_table_row(l:line)
 
-    let l:insert_at = a:side ==# s:MD_ALIGNMENT_LEFT
-          \ ? l:column
-          \ : l:column + 1
-    let l:insert_at = min([l:insert_at, len(l:cells)])
-
-    let l:insert_column = l:insert_at
-
     if s:is_separator_row(l:cells)
-      call insert(l:cells, s:MD_ALIGNMENT_CENTER, l:insert_at)
+      call insert(l:cells, s:MD_ALIGNMENT_CENTER, l:insert_column)
     else
-      call insert(l:cells, '', l:insert_at)
+      call insert(l:cells, '', l:insert_column)
     endif
 
     call add(l:formatted, s:build_table_row(l:cells))
