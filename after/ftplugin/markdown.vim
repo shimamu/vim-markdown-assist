@@ -328,8 +328,8 @@ function! s:md_table_add_column(side)
   call cursor(l:start, l:column_start + 2)
 endfunction
 
-nnoremap <buffer> <Leader>mar :<C-u>call <SID>md_table_add_column('right')<CR>
-nnoremap <buffer> <Leader>mal :<C-u>call <SID>md_table_add_column('left')<CR>
+execute 'nnoremap <buffer> <Leader>mar :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_RIGHT) . ')<CR>'
+execute 'nnoremap <buffer> <Leader>mal :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_LEFT) . ')<CR>'
 
 " GFM Spec 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
