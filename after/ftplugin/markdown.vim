@@ -413,27 +413,63 @@ endfunction
 xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>md_renumber_ordered_list(0)<CR>
 xnoremap <buffer> <Leader>mr1 :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR>
 
-" s:format_text(start, end) abort {{{3
-function! s:format_text(start, end) abort
-  let l:formatexpr = &l:formatexpr
+" feat: line wrapping {{{3
+" s:md_format_line_wrapping() {{{4
+function! s:md_format_line_wrapping() abort
+  let l:start = v:lnum
+  let l:end = l:start + v:count - 1
+  let l:lines = getline(l:start, l:end)
+  let l:format_blocks = []
+  let l:i = 0
 
-  setlocal formatexpr=
-
-  try
-    call cursor(a:start, 1)
-
-    if a:end > a:start
-      execute 'normal! V' . (a:end - a:start) . 'jgq'
-    else
-      normal! Vgq
+  " Group lines into formatting blocks
+  while l:i < len(l:lines)
+    if l:lines[l:i] =~# '^\s*$'
+      let l:i += 1
+      continue
     endif
-  finally
-    let &l:formatexpr = l:formatexpr
-  endtry
+
+    let l:block_start = l:i
+    let l:is_list = l:lines[l:i]
+          \ =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
+
+    let l:i += 1
+
+    while l:i < len(l:lines)
+      if l:lines[l:i] =~# '^\s*$'
+        break
+      endif
+
+      if l:lines[l:i] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
+        break
+      endif
+
+      let l:i += 1
+    endwhile
+
+    call add(l:format_blocks, {
+          \ 'start': l:start + l:block_start,
+          \ 'end': l:start + l:i - 1,
+          \ 'is_list': l:is_list
+          \ })
+  endwhile
+
+  " Format blocks from bottom to top
+  for l:block in reverse(l:format_blocks)
+    if l:block.is_list
+      call s:format_list_item_wrapping(l:block.start, l:block.end)
+    else
+      call s:format_text_wrapping(l:block.start, l:block.end)
+    endif
+  endfor
+
+  return 0
 endfunction
 
-" s:format_item(start, end) abort {{{3
-function! s:format_item(start, end) abort
+setlocal formatexpr=<SID>md_format_line_wrapping()
+
+" s:format_list_item_wrapping() {{{4
+function! s:format_list_item_wrapping(start, end) abort
   let l:lines = getline(a:start, a:end)
   let l:match = matchlist(
         \ l:lines[0],
@@ -508,59 +544,24 @@ function! s:format_item(start, end) abort
   call setline(a:start, l:lines)
 endfunction
 
-" s:format() abort {{{3
-function! s:format() abort
-  let l:start = v:lnum
-  let l:end = l:start + v:count - 1
-  let l:lines = getline(l:start, l:end)
-  let l:format_blocks = []
-  let l:i = 0
+" s:format_text_wrapping() {{{4
+function! s:format_text_wrapping(start, end) abort
+  let l:formatexpr = &l:formatexpr
 
-  " Group lines into formatting blocks
-  while l:i < len(l:lines)
-    if l:lines[l:i] =~# '^\s*$'
-      let l:i += 1
-      continue
-    endif
+  setlocal formatexpr=
 
-    let l:block_start = l:i
-    let l:is_list = l:lines[l:i]
-          \ =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
+  try
+    call cursor(a:start, 1)
 
-    let l:i += 1
-
-    while l:i < len(l:lines)
-      if l:lines[l:i] =~# '^\s*$'
-        break
-      endif
-
-      if l:lines[l:i] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
-        break
-      endif
-
-      let l:i += 1
-    endwhile
-
-    call add(l:format_blocks, {
-          \ 'start': l:start + l:block_start,
-          \ 'end': l:start + l:i - 1,
-          \ 'is_list': l:is_list
-          \ })
-  endwhile
-
-  " Format blocks from bottom to top
-  for l:block in reverse(l:format_blocks)
-    if l:block.is_list
-      call s:format_item(l:block.start, l:block.end)
+    if a:end > a:start
+      execute 'normal! V' . (a:end - a:start) . 'jgq'
     else
-      call s:format_text(l:block.start, l:block.end)
+      normal! Vgq
     endif
-  endfor
-
-  return 0
+  finally
+    let &l:formatexpr = l:formatexpr
+  endtry
 endfunction
-
-setlocal formatexpr=<SID>format()
 
 " 5.3 Task list items (extension) {{{2
 " feat: task list continuation {{{3
