@@ -320,14 +320,13 @@ function! s:md_table_add_column(side)
 
   " Move the cursor to the first cell of the inserted column.
   let l:header = getline(l:start)
-  let l:column_start = 1
+  let l:separator_col = 1
 
   for l:i in range(l:insert_column)
-    let l:separator = stridx(l:header, '|', l:column_start)
-    let l:column_start = l:separator + 1
+    let l:separator_col = stridx(l:header, '|', l:separator_col) + 1
   endfor
 
-  call cursor(l:start, l:column_start + 2)
+  call cursor(l:start, l:separator_col + 2)
 endfunction
 
 execute 'nnoremap <buffer> <Leader>mar :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_RIGHT) . ')<CR>'
