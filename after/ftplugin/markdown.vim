@@ -424,7 +424,7 @@ function! s:md_format_line_wrapping() abort
 
   " Group lines into formatting blocks
   while l:i < len(l:lines)
-    if l:lines[l:i] =~# '^\s*$'
+    if call s:is_blank_line(l:lines[l:i])
       let l:i += 1
       continue
     endif
@@ -436,7 +436,7 @@ function! s:md_format_line_wrapping() abort
     let l:i += 1
 
     while l:i < len(l:lines)
-      if l:lines[l:i] =~# '^\s*$'
+      if call s:is_blank_line(l:lines[l:i])
         break
       endif
 
@@ -467,6 +467,11 @@ function! s:md_format_line_wrapping() abort
 endfunction
 
 setlocal formatexpr=<SID>md_format_line_wrapping()
+
+" s:is_blank_line() {{{4
+function! s:is_blank_line(line) abort
+  return a:line =~# '^\s*$'
+endfunction
 
 " s:format_list_item_wrapping() {{{4
 function! s:format_list_item_wrapping(start, end) abort
