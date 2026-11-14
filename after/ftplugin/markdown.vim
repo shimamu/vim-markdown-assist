@@ -430,7 +430,7 @@ function! s:md_format_line_wrapping() abort
     endif
 
     let l:block_start = l:i
-    let l:is_list = l:lines[l:i]
+    let l:is_list_item = l:lines[l:i]
           \ =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
 
     let l:i += 1
@@ -450,13 +450,13 @@ function! s:md_format_line_wrapping() abort
     call add(l:format_blocks, {
           \ 'start': l:start + l:block_start,
           \ 'end': l:start + l:i - 1,
-          \ 'is_list': l:is_list
+          \ 'is_list_item': l:is_list_item
           \ })
   endwhile
 
   " Format blocks from bottom to top
   for l:block in reverse(l:format_blocks)
-    if l:block.is_list
+    if l:block.is_list_item
       call s:format_list_item_wrapping(l:block.start, l:block.end)
     else
       call s:format_text_wrapping(l:block.start, l:block.end)
