@@ -410,8 +410,8 @@ function! s:md_renumber_ordered_list(start_from_one) range
   endfor
 endfunction
 
-xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>md_renumber_ordered_list(0)<CR>
-xnoremap <buffer> <Leader>mr1 :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR>
+xnoremap <buffer> <Leader>mo :<C-u>'<,'>call <SID>md_renumber_ordered_list(0)<CR>
+xnoremap <buffer> <Leader>mO :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR>
 
 " feat: line wrapping {{{3
 " s:md_format_line_wrapping() {{{4
