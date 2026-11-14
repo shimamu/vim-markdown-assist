@@ -515,8 +515,8 @@ function! s:format_list_item_wrapping(start, end) abort
 
   setlocal formatexpr=
 
-  " Record the line count before formatting
-  let l:line_count = line('$')
+  " Record the total buffer line count before formatting
+  let l:buffer_line_count = line('$')
 
   try
     " Run the default formatting on the current item
@@ -533,17 +533,14 @@ function! s:format_list_item_wrapping(start, end) abort
   endtry
 
   " Calculate the formatted range
-  let l:formatted_end = a:end + (line('$') - l:line_count)
+  let l:formatted_end = a:end + (line('$') - l:buffer_line_count)
 
   " Restore the list marker and indentation
   let l:lines = getline(a:start, l:formatted_end)
 
   let l:lines[0] = l:indent . l:marker . l:lines[0]
-
   for l:i in range(1, len(l:lines) - 1)
-    if l:lines[l:i] !~# '^\s*$'
-      let l:lines[l:i] = l:continuation_indent . l:lines[l:i]
-    endif
+    let l:lines[l:i] = l:continuation_indent . l:lines[l:i]
   endfor
 
   call setline(a:start, l:lines)
