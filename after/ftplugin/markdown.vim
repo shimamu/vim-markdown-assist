@@ -436,7 +436,7 @@ function! s:md_format_line_wrapping() abort
     " Find the end of the current block
     let l:i += 1
     while l:i < len(l:lines)
-      if call s:is_blank_line(l:lines[l:i])
+      if s:is_blank_line(l:lines[l:i])
         break
       endif
 
