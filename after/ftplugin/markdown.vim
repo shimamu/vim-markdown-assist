@@ -619,8 +619,8 @@ function! s:toggle_markdown_todo(start, end) abort
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line('.'), line('.'))<CR>
-xnoremap <buffer> <Leader>mt :<C-u>call <SID>toggle_markdown_todo(line("'<"), line("'>"))<CR>
+nnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>toggle_markdown_todo(line('.'), line('.'))<CR>
+xnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>toggle_markdown_todo(line("'<"), line("'>"))<CR>
 
 " s:set_todo() {{{3
 function! s:set_todo(done) range
@@ -639,10 +639,10 @@ function! s:set_todo(done) range
   endfor
 endfunction
 
-nnoremap <Leader>mx :<C-u>call <SID>set_todo(1)<CR>
-nnoremap <Leader>m<Space> :<C-u>call <SID>set_todo(0)<CR>
-xnoremap <Leader>mx :<C-u>'<,'>call <SID>set_todo(1)<CR>
-xnoremap <Leader>m<Space> :<C-u>'<,'>call <SID>set_todo(0)<CR>
+nnoremap <Leader>md :<C-u>call <SID>set_todo(1)<CR>
+nnoremap <Leader>mr :<C-u>call <SID>set_todo(0)<CR>
+xnoremap <Leader>md :<C-u>'<,'>call <SID>set_todo(1)<CR>
+xnoremap <Leader>mr :<C-u>'<,'>call <SID>set_todo(0)<CR>
 
 " GFM Spec 6. Inlines {{{1
 " 6.3 Code spans {{{2
