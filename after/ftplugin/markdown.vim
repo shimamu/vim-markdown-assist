@@ -345,8 +345,20 @@ setlocal comments+=n:>
 " local options {{{4
 setlocal comments+=b:*,b:-,b:+
 
-" s:markdown_list_marker() {{{3
-function! s:markdown_list_marker(lnum, offset) abort
+" feat: ordered list continuation {{{3
+" s:md_continue_list() {{{4
+function! s:md_continue_list(lnum, offset) abort
+  let l:result = s:continue_ordered_list(a:lnum, a:offset)
+  let l:result .= s:continue_task_list(a:lnum)
+  return l:result
+endfunction
+
+inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>md_continue_list(line('.') - 1, 1)<CR>"
+nnoremap <buffer> <expr> o "o\<C-r>=<SID>md_continue_list(line('.') - 1, 1)<CR>"
+nnoremap <buffer> <expr> O "O\<C-r>=<SID>md_continue_list(line('.') + 1, -1)<CR>"
+
+" s:continue_ordered_list() {{{4
+function! s:continue_ordered_list(lnum, offset) abort
   let l:line = getline(a:lnum)
   let l:match = matchlist(l:line, '^\s*\(\d\+\)\([.)]\)\s\+')
 
@@ -356,10 +368,6 @@ function! s:markdown_list_marker(lnum, offset) abort
 
   return max([1, str2nr(l:match[1]) + a:offset]) . l:match[2] . ' '
 endfunction
-
-inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1)<CR>"
-nnoremap <buffer> <expr> o "o\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1)<CR>"
-nnoremap <buffer> <expr> O "O\<C-r>=<SID>markdown_list_marker(line('.') + 1, -1)<CR>"
 
 " s:renumber_markdown_list() {{{3
 function! s:renumber_markdown_list(start_from_one) range
@@ -555,8 +563,9 @@ endfunction
 setlocal formatexpr=<SID>format()
 
 " 5.3 Task list items (extension) {{{2
-" s:markdown_todo_marker() {{{3
-function! s:markdown_todo_marker(lnum) abort
+" feat: task list continuation {{{3
+" s:continue_task_list() {{{4
+function! s:continue_task_list(lnum) abort
   let l:line = getline(a:lnum)
 
   if l:line !~# '^\s*-\s\+\[[ x]\]'
@@ -565,10 +574,6 @@ function! s:markdown_todo_marker(lnum) abort
 
   return '[ ] '
 endfunction
-
-inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1) . <SID>markdown_todo_marker(line('.') - 1)<CR>"
-nnoremap <buffer> <expr> o "o\<C-r>=<SID>markdown_list_marker(line('.') - 1, 1) . <SID>markdown_todo_marker(line('.') - 1)<CR>"
-nnoremap <buffer> <expr> O "O\<C-r>=<SID>markdown_list_marker(line('.') + 1, -1) . <SID>markdown_todo_marker(line('.') + 1)<CR>"
 
 " s:toggle_markdown_todo() {{{3
 function! s:toggle_markdown_todo(start, end) abort
