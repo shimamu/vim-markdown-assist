@@ -509,15 +509,14 @@ function! s:format_item(start, end) abort
 endfunction
 
 " s:format() abort {{{3
-" s:format() abort {{{3
 function! s:format() abort
   let l:start = v:lnum
   let l:end = l:start + v:count - 1
   let l:lines = getline(l:start, l:end)
-  let l:blocks = []
+  let l:format_blocks = []
   let l:i = 0
 
-  " Find paragraphs and list items
+  " Group lines into formatting blocks
   while l:i < len(l:lines)
     if l:lines[l:i] =~# '^\s*$'
       let l:i += 1
@@ -542,19 +541,19 @@ function! s:format() abort
       let l:i += 1
     endwhile
 
-    call add(l:blocks, [
-          \ l:start + l:block_start,
-          \ l:start + l:i - 1,
-          \ l:is_list
-          \ ])
+    call add(l:format_blocks, {
+          \ 'start': l:start + l:block_start,
+          \ 'end': l:start + l:i - 1,
+          \ 'is_list': l:is_list
+          \ })
   endwhile
 
   " Format blocks from bottom to top
-  for l:block in reverse(l:blocks)
-    if l:block[2]
-      call s:format_item(l:block[0], l:block[1])
+  for l:block in reverse(l:format_blocks)
+    if l:block.is_list
+      call s:format_item(l:block.start, l:block.end)
     else
-      call s:format_text(l:block[0], l:block[1])
+      call s:format_text(l:block.start, l:block.end)
     endif
   endfor
 
