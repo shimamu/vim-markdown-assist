@@ -95,15 +95,15 @@ function! s:md_table_convert(...) range
   endif
 
   if a:0 == 2
-    let l:start = min([a:1, a:2])
-    let l:end = max([a:1, a:2])
+    let l:start_lnum = min([a:1, a:2])
+    let l:end_lnum = max([a:1, a:2])
   else
-    let l:start = line('.')
-    let l:end = line('.')
+    let l:start_lnum = line('.')
+    let l:end_lnum = line('.')
   endif
 
-  call s:convert_csv_to_table(l:start, l:end)
-  call cursor(l:start, 1)
+  call s:convert_csv_to_table(l:start_lnum, l:end_lnum)
+  call cursor(l:start_lnum, 1)
   call s:format_table()
 endfunction
 
@@ -116,8 +116,8 @@ function! s:is_table_line(lnum)
 endfunction
 
 " s:convert_csv_to_table() {{{4
-function! s:convert_csv_to_table(start, end)
-  let l:lines = getline(a:start, a:end)
+function! s:convert_csv_to_table(start_lnum, end_lnum)
+  let l:lines = getline(a:start_lnum, a:end_lnum)
   let l:table = []
 
   for l:line in l:lines
@@ -136,7 +136,7 @@ function! s:convert_csv_to_table(start, end)
     call add(l:table, s:build_table_row(l:blank_cells))
   endif
 
-  call s:replace_lines(a:start, a:end, l:table)
+  call s:replace_lines(a:start_lnum, a:end_lnum, l:table)
 endfunction
 
 "s:build_table_row() {{{4
@@ -145,23 +145,23 @@ function! s:build_table_row(cells)
 endfunction
 
 " s:replace_lines() {{{4
-function! s:replace_lines(start, end, lines)
-  call append(a:start - 1, a:lines)
+function! s:replace_lines(start_lnum, end_lnum, lines)
+  call append(a:start_lnum - 1, a:lines)
   call deletebufline('%',
-        \ a:start + len(a:lines),
-        \ a:start + len(a:lines) + a:end - a:start)
+        \ a:start_lnum + len(a:lines),
+        \ a:start_lnum + len(a:lines) + a:end_lnum - a:start_lnum)
 endfunction
 
 "s:format_table() {{{4
 function! s:format_table()
   let l:lnum = line('.')
 
-  let [l:start, l:end] = s:get_table_range(line('.'))
+  let [l:start_lnum, l:end_lnum] = s:get_table_range(l:lnum)
 
-  let l:lines = getline(l:start, l:end)
+  let l:lines = getline(l:start_lnum, l:end_lnum)
   let l:rows = []
   let l:alignments = []
-  let l:widths = []
+  let l:column_widths = []
 
   " Parse rows and determine column widths.
   for l:line in l:lines
@@ -174,19 +174,19 @@ function! s:format_table()
       call add(l:rows, {'separator': 0, 'cells': l:cells})
 
       for l:i in range(len(l:cells))
-        if len(l:widths) <= l:i
-          call add(l:widths, 0)
+        if len(l:column_widths) <= l:i
+          call add(l:column_widths, 0)
         endif
 
-        let l:widths[l:i] = max([
-              \ l:widths[l:i],
+        let l:column_widths[l:i] = max([
+              \ l:column_widths[l:i],
               \ strdisplaywidth(l:cells[l:i]),
               \ ])
       endfor
     endif
   endfor
 
-  let l:column_count = len(l:widths)
+  let l:column_count = len(l:column_widths)
 
   if l:column_count == 0
     return
@@ -203,7 +203,7 @@ function! s:format_table()
   for l:i in range(l:column_count)
     let l:alignment = get(l:alignments, l:i, s:MD_ALIGNMENT_NONE)
     let l:min_width = max([len(l:alignment), g:MD_TABLE_CELL_MIN_WIDTH])
-    let l:widths[l:i] = max([l:min_width, l:widths[l:i]])
+    let l:column_widths[l:i] = max([l:min_width, l:column_widths[l:i]])
   endfor
 
   " Format rows.
@@ -213,12 +213,12 @@ function! s:format_table()
     let l:cells = []
 
     for l:i in range(l:column_count)
-      let l:width = l:widths[l:i]
+      let l:column_width = l:column_widths[l:i]
 
       if l:row.separator
         let l:alignment = get(l:alignments, l:i, s:MD_ALIGNMENT_NONE)
         let l:colon_count = count(split(l:alignment, '\zs'), ':')
-        let l:hyphens = repeat('-', max([1, l:width - l:colon_count]))
+        let l:hyphens = repeat('-', max([1, l:column_width - l:colon_count]))
 
         if l:alignment ==# s:MD_ALIGNMENT_LEFT
           let l:cell = ':' . l:hyphens
@@ -227,11 +227,11 @@ function! s:format_table()
         elseif l:alignment ==# s:MD_ALIGNMENT_CENTER
           let l:cell = ':' . l:hyphens . ':'
         else
-          let l:cell = repeat('-', l:width)
+          let l:cell = repeat('-', l:column_width)
         endif
       else
         let l:cell = l:row.cells[l:i]
-        let l:cell .= repeat(' ', l:width - strdisplaywidth(l:cell))
+        let l:cell .= repeat(' ', l:column_width - strdisplaywidth(l:cell))
       endif
 
       call add(l:cells, ' ' . l:cell . ' ')
@@ -240,7 +240,7 @@ function! s:format_table()
     call add(l:formatted, s:build_table_row(l:cells))
   endfor
 
-  call setline(l:start, l:formatted)
+  call setline(l:start_lnum, l:formatted)
   call cursor(l:lnum, 1)
 endfunction
 
@@ -255,18 +255,18 @@ endfunction
 
 " s:get_table_range() {{{4
 function! s:get_table_range(lnum)
-  let l:start = a:lnum
-  let l:end = a:lnum
+  let l:start_lnum = a:lnum
+  let l:end_lnum = a:lnum
 
-  while l:start > 1 && s:is_table_line(l:start - 1)
-    let l:start -= 1
+  while l:start_lnum > 1 && s:is_table_line(l:start_lnum - 1)
+    let l:start_lnum -= 1
   endwhile
 
-  while l:end < line('$') && s:is_table_line(l:end + 1)
-    let l:end += 1
+  while l:end_lnum < line('$') && s:is_table_line(l:end_lnum + 1)
+    let l:end_lnum += 1
   endwhile
 
-  return [l:start, l:end]
+  return [l:start_lnum, l:end_lnum]
 endfunction
 
 " s:is_separator_row() {{{4
@@ -277,14 +277,14 @@ endfunction
 
 " s:get_alignment() {{{4
 function! s:get_alignment(cell)
-  let l:left = a:cell =~# '^:'
-  let l:right = a:cell =~# ':$'
+  let l:is_left = a:cell =~# '^:'
+  let l:is_right = a:cell =~# ':$'
 
-  if l:left && l:right
+  if l:is_left && l:is_right
     return s:MD_ALIGNMENT_CENTER
-  elseif l:left
+  elseif l:is_left
     return s:MD_ALIGNMENT_LEFT
-  elseif l:right
+  elseif l:is_right
     return s:MD_ALIGNMENT_RIGHT
   endif
 
@@ -300,7 +300,7 @@ function! s:md_table_add_column(side)
 
   let l:lnum = line('.')
   let l:prefix = strpart(getline('.'), 0, col('.') - 1)
-  let l:column = max([
+  let l:column_idx = max([
         \ 0,
         \ count(split(l:prefix, '\zs'), '|') - 1,
         \ ])
@@ -308,13 +308,13 @@ function! s:md_table_add_column(side)
   " Fill missing cells before adding a column.
   call s:format_table()
 
-  let [l:start, l:end] = s:get_table_range(l:lnum)
+  let [l:start_lnum, l:end_lnum] = s:get_table_range(l:lnum)
 
-  let l:lines = getline(l:start, l:end)
+  let l:lines = getline(l:start_lnum, l:end_lnum)
   let l:formatted = []
-  let l:insert_column = a:side ==# s:MD_ALIGNMENT_LEFT
-        \ ? l:column
-        \ : l:column + 1
+  let l:insert_column_idx = a:side ==# s:MD_ALIGNMENT_LEFT
+        \ ? l:column_idx
+        \ : l:column_idx + 1
 
   for l:line in l:lines
     let l:cells = s:parse_table_row(l:line)
@@ -322,25 +322,25 @@ function! s:md_table_add_column(side)
     let l:cell = s:is_separator_row(l:cells)
           \ ? s:MD_ALIGNMENT_CENTER
           \ : ''
-    call insert(l:cells, l:cell, l:insert_column)
+    call insert(l:cells, l:cell, l:insert_column_idx)
 
     call add(l:formatted, s:build_table_row(l:cells))
   endfor
 
-  call s:replace_lines(l:start, l:end, l:formatted)
+  call s:replace_lines(l:start_lnum, l:end_lnum, l:formatted)
 
   call cursor(l:lnum, 1)
   call s:format_table()
 
   " Move the cursor to the first cell of the inserted column.
-  let l:header = getline(l:start)
+  let l:header_line = getline(l:start_lnum)
   let l:separator_col = 1
 
-  for l:i in range(l:insert_column)
-    let l:separator_col = stridx(l:header, '|', l:separator_col) + 1
+  for l:i in range(l:insert_column_idx)
+    let l:separator_col = stridx(l:header_line, '|', l:separator_col) + 1
   endfor
 
-  call cursor(l:start, l:separator_col + 2)
+  call cursor(l:start_lnum, l:separator_col + 2)
 endfunction
 
 execute 'nnoremap <buffer> <Leader>mtr :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_RIGHT) . ')<CR>'
@@ -428,65 +428,67 @@ xnoremap <buffer> <Leader>mO :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR
 " feat: line wrapping {{{3
 " s:md_format_line_wrapping() {{{4
 function! s:md_format_line_wrapping() abort
-  let l:start = v:lnum
-  let l:end = l:start + v:count - 1
-  let l:lines = getline(l:start, l:end)
+  let l:start_lnum = v:lnum
+  let l:end_lnum = l:start_lnum + v:count - 1
+  let l:lines = getline(l:start_lnum, l:end_lnum)
   let l:format_blocks = []
-  let l:i = 0
+  let l:line_idx = 0
 
-  " Group lines into formatting blocks
-  while l:i < len(l:lines)
-    if call s:is_blank_line(l:lines[l:i])
-      let l:i += 1
+  " Group lines into formatting blocks.
+  while l:line_idx < len(l:lines)
+    if s:is_blank_line(l:lines[l:line_idx])
+      let l:line_idx += 1
       continue
     endif
 
-    let l:block_start = l:i
-    let l:is_list_item = l:lines[l:i]
+    let l:block_start_idx = l:line_idx
+    let l:is_list_item = l:lines[l:line_idx]
           \ =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
 
-    " Find the end of the current block
-    let l:i += 1
-    while l:i < len(l:lines)
-      if s:is_blank_line(l:lines[l:i])
+    " Find the end of the current block.
+    let l:line_idx += 1
+    while l:line_idx < len(l:lines)
+      if s:is_blank_line(l:lines[l:line_idx])
         break
       endif
 
-      if l:lines[l:i] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
+      if l:lines[l:line_idx] =~# '^\s*[-*+]\s\+\%(\[[ xX]\]\s\+\)\?'
         break
       endif
 
-      let l:i += 1
+      let l:line_idx += 1
     endwhile
 
     call add(l:format_blocks, {
-          \ 'start': l:start + l:block_start,
-          \ 'end': l:start + l:i - 1,
+          \ 'start_lnum': l:start_lnum + l:block_start_idx,
+          \ 'end_lnum': l:start_lnum + l:line_idx - 1,
           \ 'is_list_item': l:is_list_item
           \ })
   endwhile
 
-  " Record the original range before formatting
+  " Record the original range before formatting.
   let l:buffer_line_count = line('$')
-  let l:last_block_end = empty(l:format_blocks)
+  let l:last_block_end_lnum = empty(l:format_blocks)
         \ ? 0
-        \ : l:format_blocks[-1].end
+        \ : l:format_blocks[-1].end_lnum
 
-  " Format blocks from bottom to top
+  " Format blocks from bottom to top.
   for l:block in reverse(l:format_blocks)
     if l:block.is_list_item
-      call s:format_list_item_wrapping(l:block.start, l:block.end)
+      call s:format_list_item_wrapping(
+            \ l:block.start_lnum, l:block.end_lnum)
     else
-      call s:format_text_wrapping(l:block.start, l:block.end)
+      call s:format_text_wrapping(
+            \ l:block.start_lnum, l:block.end_lnum)
     endif
   endfor
 
-  " Restore cursor position to the last formatted line
-  if l:last_block_end > 0
-    let l:formatted_end =
-          \ l:last_block_end + (line('$') - l:buffer_line_count)
+  " Restore cursor position to the last formatted line.
+  if l:last_block_end_lnum > 0
+    let l:formatted_end_lnum =
+          \ l:last_block_end_lnum + (line('$') - l:buffer_line_count)
 
-    call cursor(l:formatted_end, 1)
+    call cursor(l:formatted_end_lnum, 1)
     normal! ^
   endif
 
@@ -501,8 +503,8 @@ function! s:is_blank_line(line) abort
 endfunction
 
 " s:format_list_item_wrapping() {{{4
-function! s:format_list_item_wrapping(start, end) abort
-  let l:lines = getline(a:start, a:end)
+function! s:format_list_item_wrapping(start_lnum, end_lnum) abort
+  let l:lines = getline(a:start_lnum, a:end_lnum)
   let l:match = matchlist(
         \ l:lines[0],
         \ '^\(\s*\)\([-*+]\s\+\(\[[ xX]\]\s\+\)\?\)\(.*\)$')
@@ -516,7 +518,7 @@ function! s:format_list_item_wrapping(start, end) abort
   let l:continuation_indent =
         \ l:indent . repeat(' ', strdisplaywidth(l:marker))
 
-  " Remove the list marker and indentation
+  " Remove the list marker and indentation.
   let l:lines[0] = l:match[4]
 
   for l:i in range(1, len(l:lines) - 1)
@@ -526,9 +528,9 @@ function! s:format_list_item_wrapping(start, end) abort
           \ '', '')
   endfor
 
-  call setline(a:start, l:lines)
+  call setline(a:start_lnum, l:lines)
 
-  " Temporarily disable formatexpr and adjust textwidth
+  " Temporarily disable formatexpr and adjust textwidth.
   let l:formatexpr = &l:formatexpr
   let l:textwidth = &l:textwidth
 
@@ -542,15 +544,15 @@ function! s:format_list_item_wrapping(start, end) abort
 
   setlocal formatexpr=
 
-  " Record the total buffer line count before formatting
+  " Record the total buffer line count before formatting.
   let l:buffer_line_count = line('$')
 
   try
-    " Run the default formatting on the current item
-    call cursor(a:start, 1)
+    " Run the default formatting on the current item.
+    call cursor(a:start_lnum, 1)
 
-    if a:end > a:start
-      execute 'normal! V' . (a:end - a:start) . 'jgq'
+    if a:end_lnum > a:start_lnum
+      execute 'normal! V' . (a:end_lnum - a:start_lnum) . 'jgq'
     else
       normal! Vgq
     endif
@@ -559,31 +561,32 @@ function! s:format_list_item_wrapping(start, end) abort
     let &l:textwidth = l:textwidth
   endtry
 
-  " Calculate the formatted range
-  let l:formatted_end = a:end + (line('$') - l:buffer_line_count)
+  " Calculate the formatted range.
+  let l:formatted_end_lnum =
+        \ a:end_lnum + (line('$') - l:buffer_line_count)
 
-  " Restore the list marker and indentation
-  let l:lines = getline(a:start, l:formatted_end)
+  " Restore the list marker and indentation.
+  let l:lines = getline(a:start_lnum, l:formatted_end_lnum)
 
   let l:lines[0] = l:indent . l:marker . l:lines[0]
   for l:i in range(1, len(l:lines) - 1)
     let l:lines[l:i] = l:continuation_indent . l:lines[l:i]
   endfor
 
-  call setline(a:start, l:lines)
+  call setline(a:start_lnum, l:lines)
 endfunction
 
 " s:format_text_wrapping() {{{4
-function! s:format_text_wrapping(start, end) abort
+function! s:format_text_wrapping(start_lnum, end_lnum) abort
   let l:formatexpr = &l:formatexpr
 
   setlocal formatexpr=
 
   try
-    call cursor(a:start, 1)
+    call cursor(a:start_lnum, 1)
 
-    if a:end > a:start
-      execute 'normal! V' . (a:end - a:start) . 'jgq'
+    if a:end_lnum > a:start_lnum
+      execute 'normal! V' . (a:end_lnum - a:start_lnum) . 'jgq'
     else
       normal! Vgq
     endif
@@ -680,24 +683,24 @@ nnoremap <buffer> <Leader>mc :<C-u>set operatorfunc=<SID>md_wrap_code<CR>g@
 
 " s:wrap_text() {{{4
 function! s:wrap_text(type, wrapper) abort
-  let l:start = getpos("'[")
-  let l:end = getpos("']")
+  let l:start_pos = getpos("'[")
+  let l:end_pos = getpos("']")
 
   if a:type ==# 'char'
-    call s:wrap_text_char(l:start, l:end, a:wrapper)
+    call s:wrap_text_char(l:start_pos, l:end_pos, a:wrapper)
   elseif a:type ==# 'line'
-    call s:wrap_text_line(l:start, l:end, a:wrapper)
+    call s:wrap_text_line(l:start_pos, l:end_pos, a:wrapper)
   elseif a:type ==# 'block'
-    call s:wrap_text_block(l:start, l:end, a:wrapper)
+    call s:wrap_text_block(l:start_pos, l:end_pos, a:wrapper)
   endif
 endfunction
 
 " s:wrap_text_char() {{{4
-function! s:wrap_text_char(start, end, wrapper) abort
-  let l:start_lnum = a:start[1]
-  let l:start_col = a:start[2]
-  let l:end_lnum = a:end[1]
-  let l:end_col = a:end[2]
+function! s:wrap_text_char(start_pos, end_pos, wrapper) abort
+  let l:start_lnum = a:start_pos[1]
+  let l:start_col = a:start_pos[2]
+  let l:end_lnum = a:end_pos[1]
+  let l:end_col = a:end_pos[2]
 
   let l:start_line = getline(l:start_lnum)
   let l:end_line = getline(l:end_lnum)
@@ -742,21 +745,21 @@ function! s:insert_wrapper(line, start_byte, end_byte, wrapper, mode) abort
 endfunction
 
 " s:wrap_text_line() {{{4
-function! s:wrap_text_line(start, end, wrapper) abort
-  let l:start_line = a:start[1]
-  let l:end_line = a:end[1]
-  let l:lines = getline(l:start_line, l:end_line)
+function! s:wrap_text_line(start_pos, end_pos, wrapper) abort
+  let l:start_lnum = a:start_pos[1]
+  let l:end_lnum = a:end_pos[1]
+  let l:lines = getline(l:start_lnum, l:end_lnum)
 
   let l:lines[0] = a:wrapper . l:lines[0]
   let l:lines[-1] .= a:wrapper
 
-  call setline(l:start_line, l:lines)
+  call setline(l:start_lnum, l:lines)
 endfunction
 
 " s:wrap_text_block() {{{4
-function! s:wrap_text_block(start, end, wrapper) abort
-  let l:start_lnum = a:start[1]
-  let l:end_lnum = a:end[1]
+function! s:wrap_text_block(start_pos, end_pos, wrapper) abort
+  let l:start_lnum = a:start_pos[1]
+  let l:end_lnum = a:end_pos[1]
 
   let l:start_vcol = virtcol("'<")
   let l:end_vcol = virtcol("'>")
@@ -767,12 +770,12 @@ function! s:wrap_text_block(start, end, wrapper) abort
 
   let l:new_lines = getline(l:start_lnum, l:end_lnum)
 
-  for l:i in range(len(l:new_lines))
-    let l:line = l:new_lines[l:i]
-    let l:lnum = l:start_lnum + l:i
+  for l:line_idx in range(len(l:new_lines))
+    let l:line = l:new_lines[l:line_idx]
+    let l:line_lnum = l:start_lnum + l:line_idx
 
-    let l:start_col = virtcol2col(0, l:lnum, l:start_vcol)
-    let l:end_col = virtcol2col(0, l:lnum, l:end_vcol)
+    let l:start_col = virtcol2col(0, l:line_lnum, l:start_vcol)
+    let l:end_col = virtcol2col(0, l:line_lnum, l:end_vcol)
 
     if l:start_col == 0
       continue
@@ -781,7 +784,7 @@ function! s:wrap_text_block(start, end, wrapper) abort
     let l:last_char = matchstr(strpart(l:line, l:end_col - 1), '^.')
     let l:end_byte = l:end_col - 1 + strlen(l:last_char)
 
-    let l:new_lines[l:i] = s:insert_wrapper(
+    let l:new_lines[l:line_idx] = s:insert_wrapper(
           \ l:line, l:start_col - 1, l:end_byte, a:wrapper, 'both')
   endfor
 
@@ -790,16 +793,16 @@ endfunction
 
 " s:wrap_text_visual() {{{4
 function! s:wrap_text_visual(wrapper) abort
-  let l:start = getpos("'<")
-  let l:end = getpos("'>")
+  let l:start_pos = getpos("'<")
+  let l:end_pos = getpos("'>")
   let l:mode = visualmode()
 
   if l:mode ==# "\<C-V>"
-    call s:wrap_text_block(l:start, l:end, a:wrapper)
+    call s:wrap_text_block(l:start_pos, l:end_pos, a:wrapper)
   elseif l:mode ==# 'V'
-    call s:wrap_text_line(l:start, l:end, a:wrapper)
+    call s:wrap_text_line(l:start_pos, l:end_pos, a:wrapper)
   else
-    call s:wrap_text_char(l:start, l:end, a:wrapper)
+    call s:wrap_text_char(l:start_pos, l:end_pos, a:wrapper)
   endif
 endfunction
 
