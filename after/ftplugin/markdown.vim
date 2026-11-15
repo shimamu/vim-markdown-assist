@@ -57,15 +57,27 @@ nnoremap <buffer> <Leader>mh0 :<C-u>call <SID>md_set_header(0)<CR>
 " constants {{{4
 let s:CODE_BLOCK_MARKER = '```'
 
-" s:md_wrap_code_block() {{{4
-function! s:md_wrap_code_block() range
-  call append(a:firstline - 1, s:CODE_BLOCK_MARKER)
-  call append(a:lastline + 1, s:CODE_BLOCK_MARKER)
-
-  call cursor(a:firstline + 1, 1)
+" s:md_wrap_code_visual() {{{4
+function! s:md_wrap_code_visual() abort
+  if visualmode() ==# 'v'
+    call s:wrap_text_visual(s:CODE_SPAN)
+  else
+    call s:wrap_code_block()
+  endif
 endfunction
 
-xnoremap <buffer> <Leader>mc :call <SID>md_wrap_code_block()<CR>
+xnoremap <buffer> <Leader>mc :<C-u>call <SID>md_wrap_code_visual()<CR>
+
+" s:wrap_code_block() {{{4
+function! s:wrap_code_block() abort
+  let l:start = line("'<")
+  let l:end = line("'>")
+
+  call append(l:start - 1, s:CODE_BLOCK_MARKER)
+  call append(l:end + 1, s:CODE_BLOCK_MARKER)
+
+  call cursor(l:start + 1, 1)
+endfunction
 
 " 4.10 Tables (extension) {{{2
 " feat: convert text and CSV to Markdown table and format it (normal/visual mode) {{{3
@@ -770,12 +782,10 @@ function! s:wrap_text_block(start, end, wrapper) abort
   call setline(l:start_line_no, l:new_lines)
 endfunction
 
-" 6.4 Emphasis and strong emphasis {{{2
-" constants {{{3
-let s:EMPHASIS_BOLD = "**"
-let s:EMPHASIS_ITALIC = "_"
+" feat: code span wrapping (visual mode) {{{3
+" REF: s:md_wrap_code_visual() in 4.5 Fenced code blocks.
 
-" s:wrap_text_visual() {{{3
+" s:wrap_text_visual() {{{4
 function! s:wrap_text_visual(wrapper) abort
   let l:start = getpos("'<")
   let l:end = getpos("'>")
@@ -789,6 +799,11 @@ function! s:wrap_text_visual(wrapper) abort
     call s:wrap_text_char(l:start, l:end, a:wrapper)
   endif
 endfunction
+
+" 6.4 Emphasis and strong emphasis {{{2
+" constants {{{3
+let s:EMPHASIS_BOLD = "**"
+let s:EMPHASIS_ITALIC = "_"
 
 " s:set_markdown_bold() {{{3
 function! s:set_markdown_bold(type) abort
