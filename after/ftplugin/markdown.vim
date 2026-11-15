@@ -803,6 +803,9 @@ function! s:wrap_text_visual(wrapper) abort
   endif
 endfunction
 
+" feat: code span unwrapping (normal mode) {{{3
+" NOTE: Unwrapping uses s:md_unwrap() in 6.4 Emphasis and strong emphasis.
+
 " 6.4 Emphasis and strong emphasis {{{2
 " feat: bold text wrapping (normal/visual mode) {{{3
 " constants {{{4
@@ -840,15 +843,23 @@ endfunction
 
 xnoremap <buffer> <Leader>mi :<C-u>call <SID>md_wrap_italic_visual()<CR>
 
-" s:remove_markdown_wrapper() {{{3
-function! s:remove_markdown_wrapper() abort
+" feat: emphasis text (bold, italic) unwrapping (normal mode) {{{3
+" constants {{{4
+let s:MD_UNWRAP_WRAPPERS = [
+      \ s:EMPHASIS_BOLD,
+      \ s:EMPHASIS_ITALIC,
+      \ s:CODE_SPAN,
+      \ ]
+
+" s:md_unwrap() {{{4
+function! s:md_unwrap() abort
   let l:line = getline('.')
   let l:col = col('.')
   let l:nearest_start = -1
   let l:nearest_end = -1
   let l:nearest_wrapper = ''
 
-  for l:wrapper in [s:CODE_SPAN, s:EMPHASIS_BOLD, s:EMPHASIS_ITALIC]
+  for l:wrapper in s:MD_UNWRAP_WRAPPERS
     let l:wrapper_len = strlen(l:wrapper)
     let l:start = strridx(strpart(l:line, 0, l:col - 1), l:wrapper)
     let l:end = stridx(l:line, l:wrapper, l:col - 1)
@@ -879,7 +890,7 @@ function! s:remove_markdown_wrapper() abort
   call setline('.', l:new_line)
 endfunction
 
-nnoremap <buffer> <Leader>mu :<C-u>call <SID>remove_markdown_wrapper()<CR>
+nnoremap <buffer> <Leader>mu :<C-u>call <SID>md_unwrap()<CR>
 
 " 6.6 Links {{{2
 " s:get_clipboard_url() {{{3
