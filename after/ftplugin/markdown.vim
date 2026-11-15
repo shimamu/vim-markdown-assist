@@ -107,8 +107,8 @@ function! s:md_table_convert(...) range
   call s:format_table()
 endfunction
 
-nnoremap <buffer> <Leader>mtc :<C-u>call <SID>md_table_convert()<CR>
-xnoremap <buffer> <Leader>mtc :<C-u>call <SID>md_table_convert(line("'<"), line("'>"))<CR>
+nnoremap <buffer> <Leader>mtf :<C-u>call <SID>md_table_convert()<CR>
+xnoremap <buffer> <Leader>mtf :<C-u>call <SID>md_table_convert(line("'<"), line("'>"))<CR>
 
 " s:is_table_line() {{{4
 function! s:is_table_line(lnum)
@@ -343,8 +343,8 @@ function! s:md_table_add_column(side)
   call cursor(l:start_lnum, l:separator_col + 2)
 endfunction
 
-execute 'nnoremap <buffer> <Leader>mtr :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_RIGHT) . ')<CR>'
-execute 'nnoremap <buffer> <Leader>mtl :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_LEFT) . ')<CR>'
+execute 'nnoremap <buffer> <Leader>mtl :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_RIGHT) . ')<CR>'
+execute 'nnoremap <buffer> <Leader>mth :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_LEFT) . ')<CR>'
 
 " GFM Spec 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
