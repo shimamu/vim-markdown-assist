@@ -707,26 +707,38 @@ function! s:wrap_text_char(start, end, wrapper) abort
   let l:end_byte = l:end_col - 1 + strlen(l:end_char)
 
   if l:start_lnum == l:end_lnum
-    let l:new_line = strpart(l:start_line, 0, l:start_col - 1)
-          \ . a:wrapper
-          \ . strpart(l:start_line, l:start_col - 1, l:end_byte - l:start_col + 1)
-          \ . a:wrapper
-          \ . strpart(l:start_line, l:end_byte)
+    let l:new_line = s:insert_wrapper(
+          \ l:start_line, l:start_col - 1, l:end_byte, a:wrapper, 'both')
 
     call setline(l:start_lnum, l:new_line)
   else
     let l:new_lines = getline(l:start_lnum, l:end_lnum)
 
-    let l:new_lines[0] = strpart(l:start_line, 0, l:start_col - 1)
-          \ . a:wrapper
-          \ . strpart(l:start_line, l:start_col - 1)
+    let l:new_lines[0] = s:insert_wrapper(
+          \ l:start_line, l:start_col - 1, strlen(l:start_line), a:wrapper, 'start')
 
-    let l:new_lines[-1] = strpart(l:end_line, 0, l:end_byte)
-          \ . a:wrapper
-          \ . strpart(l:end_line, l:end_byte)
+    let l:new_lines[-1] = s:insert_wrapper(
+          \ l:end_line, 0, l:end_byte, a:wrapper, 'end')
 
     call setline(l:start_lnum, l:new_lines)
   endif
+endfunction
+
+" s:insert_wrapper() {{{4
+function! s:insert_wrapper(line, start_byte, end_byte, wrapper, mode) abort
+  let l:prefix = strpart(a:line, 0, a:start_byte)
+  let l:middle = strpart(a:line, a:start_byte, a:end_byte - a:start_byte)
+  let l:suffix = strpart(a:line, a:end_byte)
+
+  if a:mode ==# 'start'
+    return l:prefix . a:wrapper . l:middle . l:suffix
+  elseif a:mode ==# 'end'
+    return l:prefix . l:middle . a:wrapper . l:suffix
+  elseif a:mode ==# 'both'
+    return l:prefix . a:wrapper . l:middle . a:wrapper . l:suffix
+  endif
+
+  return a:line
 endfunction
 
 " s:wrap_text_line() {{{4
@@ -769,11 +781,8 @@ function! s:wrap_text_block(start, end, wrapper) abort
     let l:last_char = matchstr(strpart(l:line, l:end_col - 1), '^.')
     let l:end_byte = l:end_col - 1 + strlen(l:last_char)
 
-    let l:new_lines[l:i] = strpart(l:line, 0, l:start_col - 1)
-          \ . a:wrapper
-          \ . strpart(l:line, l:start_col - 1, l:end_byte - l:start_col + 1)
-          \ . a:wrapper
-          \ . strpart(l:line, l:end_byte)
+    let l:new_lines[l:i] = s:insert_wrapper(
+          \ l:line, l:start_col - 1, l:end_byte, a:wrapper, 'both')
   endfor
 
   call setline(l:start_lnum, l:new_lines)
