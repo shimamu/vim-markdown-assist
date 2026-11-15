@@ -855,37 +855,37 @@ let s:MD_UNWRAP_WRAPPERS = [
 function! s:md_unwrap() abort
   let l:line = getline('.')
   let l:col = col('.')
-  let l:nearest_start = -1
-  let l:nearest_end = -1
+  let l:nearest_start_byte = -1
+  let l:nearest_end_byte = -1
   let l:nearest_wrapper = ''
 
   for l:wrapper in s:MD_UNWRAP_WRAPPERS
     let l:wrapper_len = strlen(l:wrapper)
-    let l:start = strridx(strpart(l:line, 0, l:col - 1), l:wrapper)
-    let l:end = stridx(l:line, l:wrapper, l:col - 1)
+    let l:start_byte = strridx(strpart(l:line, 0, l:col - 1), l:wrapper)
+    let l:end_byte = stridx(l:line, l:wrapper, l:col - 1)
 
-    if l:start < 0 || l:end < 0
+    if l:start_byte < 0 || l:end_byte < 0
       continue
     endif
 
     " Select the closest wrapper pair.
-    if l:nearest_start < 0 || l:start > l:nearest_start
-      let l:nearest_start = l:start
-      let l:nearest_end = l:end
+    if l:nearest_start_byte < 0 || l:start_byte > l:nearest_start_byte
+      let l:nearest_start_byte = l:start_byte
+      let l:nearest_end_byte = l:end_byte
       let l:nearest_wrapper = l:wrapper
     endif
   endfor
 
-  if l:nearest_start < 0
+  if l:nearest_start_byte < 0
     return
   endif
 
   let l:wrapper_len = strlen(l:nearest_wrapper)
 
-  let l:new_line = strpart(l:line, 0, l:nearest_start)
-        \ . strpart(l:line, l:nearest_start + l:wrapper_len,
-        \ l:nearest_end - l:nearest_start - l:wrapper_len)
-        \ . strpart(l:line, l:nearest_end + l:wrapper_len)
+  let l:new_line = strpart(l:line, 0, l:nearest_start_byte)
+        \ . strpart(l:line, l:nearest_start_byte + l:wrapper_len,
+        \   l:nearest_end_byte - l:nearest_start_byte - l:wrapper_len)
+        \ . strpart(l:line, l:nearest_end_byte + l:wrapper_len)
 
   call setline('.', l:new_line)
 endfunction
