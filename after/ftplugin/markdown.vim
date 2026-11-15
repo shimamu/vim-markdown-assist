@@ -357,6 +357,40 @@ setlocal comments+=n:>
 " local options {{{4
 setlocal comments+=b:*,b:-,b:+
 
+" feat: bullet list insertion (normal/visual mode) {{{3
+" s:md_set_bullet_list() {{{4
+function! s:md_set_bullet_list(force_dash) range abort
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+
+    if l:line =~# '^\s*[-*+]\s\+'
+      if a:force_dash
+        let l:line = substitute(
+              \ l:line,
+              \ '^\(\s*\)[*+]',
+              \ '\1-',
+              \ '')
+      endif
+    elseif l:line !~# '^\s*\d\+[.)]\s\+'
+      let l:line = substitute(
+            \ l:line,
+            \ '^\(\s*\)',
+            \ '\1- ',
+            \ '')
+    else
+      continue
+    endif
+
+    call setline(l:lnum, l:line)
+  endfor
+endfunction
+
+nnoremap <buffer> <Leader>ml :<C-u>call <SID>md_set_bullet_list(0)<CR>
+xnoremap <buffer> <Leader>ml :<C-u>'<,'>call <SID>md_set_bullet_list(0)<CR>
+
+nnoremap <buffer> <Leader>mL :<C-u>call <SID>md_set_bullet_list(1)<CR>
+xnoremap <buffer> <Leader>mL :<C-u>'<,'>call <SID>md_set_bullet_list(1)<CR>
+
 " feat: ordered list continuation {{{3
 " s:md_continue_list() {{{4
 function! s:md_continue_list(lnum, offset) abort
