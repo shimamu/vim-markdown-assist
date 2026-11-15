@@ -965,21 +965,6 @@ endfunction
 
 nnoremap <buffer> <Leader>mll :<C-u>call <SID>md_insert_link_with_title()<CR>
 
-" {{{1 Custom features
-" {{{2 Completion
-
-" Markdown_complete() {{{3
-function! Markdown_complete()
-  call complete(col('.'), [
-        \ {'word': '1. ', 'menu': 'order list'},
-        \ {'word': '- ', 'menu': 'unorder list'},
-        \ {'word': '[]()', 'menu': 'link'}
-        \ ])
-  return ''
-endfunction
-
-inoremap <f5> <C-r>=Markdown_complete()<CR>
-
 " Modeline {{{1
 " vim:set ts=8 sts=2 sw=2 tw=0:
 " vim:set foldmethod=marker:
