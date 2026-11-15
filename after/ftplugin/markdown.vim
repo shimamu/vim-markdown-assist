@@ -801,37 +801,41 @@ function! s:wrap_text_visual(wrapper) abort
 endfunction
 
 " 6.4 Emphasis and strong emphasis {{{2
-" constants {{{3
+" feat: bold text wrapping (normal/visual mode) {{{3
+" constants {{{4
 let s:EMPHASIS_BOLD = "**"
-let s:EMPHASIS_ITALIC = "_"
 
-" s:set_markdown_bold() {{{3
-function! s:set_markdown_bold(type) abort
+" s:md_wrap_bold() {{{4
+function! s:md_wrap_bold(type) abort
   call s:wrap_text(a:type, s:EMPHASIS_BOLD)
 endfunction
 
-nnoremap <buffer> <Leader>mb :<C-u>set operatorfunc=<SID>set_markdown_bold<CR>g@
+nnoremap <buffer> <Leader>mb :<C-u>set operatorfunc=<SID>md_wrap_bold<CR>g@
 
-" s:set_markdown_bold_visual() {{{3
-function! s:set_markdown_bold_visual() abort
+" s:md_wrap_bold_visual() {{{4
+function! s:md_wrap_bold_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_BOLD)
 endfunction
 
-xnoremap <buffer> <Leader>mb :<C-u>call <SID>set_markdown_bold_visual()<CR>
+xnoremap <buffer> <Leader>mb :<C-u>call <SID>md_wrap_bold_visual()<CR>
 
-" s:set_markdown_italic() {{{3
-function! s:set_markdown_italic(type) abort
+" feat: italic text wrapping (normal/visual mode) {{{3
+" constants {{{4
+let s:EMPHASIS_ITALIC = "_"
+
+" s:md_wrap_italic() {{{4
+function! s:md_wrap_italic(type) abort
   call s:wrap_text(a:type, s:EMPHASIS_ITALIC)
 endfunction
 
-nnoremap <buffer> <Leader>mi :<C-u>set operatorfunc=<SID>set_markdown_italic<CR>g@
+nnoremap <buffer> <Leader>mi :<C-u>set operatorfunc=<SID>md_wrap_italic<CR>g@
 
-" s:set_markdown_italic_visual() {{{3
-function! s:set_markdown_italic_visual() abort
+" s:md_wrap_italic_visual() {{{4
+function! s:md_wrap_italic_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_ITALIC)
 endfunction
 
-xnoremap <buffer> <Leader>mi :<C-u>call <SID>set_markdown_italic_visual()<CR>
+xnoremap <buffer> <Leader>mi :<C-u>call <SID>md_wrap_italic_visual()<CR>
 
 " s:remove_markdown_wrapper() {{{3
 function! s:remove_markdown_wrapper() abort
