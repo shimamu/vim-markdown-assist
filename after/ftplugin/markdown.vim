@@ -362,6 +362,32 @@ endfunction
 nnoremap <buffer> <Leader>mq :<C-u>call <SID>md_set_blockquote()<CR>
 xnoremap <buffer> <Leader>mq :call <SID>md_set_blockquote()<CR>
 
+" feat: block quote formatting (normal/visual mode) {{{3
+" s:md_format_blockquote() {{{4
+function! s:md_format_blockquote() range abort
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+
+    if l:line =~# '^ \{4}'
+      continue
+    endif
+
+    let l:match = matchlist(l:line, '^ \{0,3}\([> ]\+\)\(.*\)$')
+
+    if empty(l:match) || l:match[1] !~# '>'
+      continue
+    endif
+
+    let l:count = count(l:match[1], '>')
+    let l:markers = join(repeat(['>'], l:count), ' ')
+
+    call setline(l:lnum, l:markers . ' ' . l:match[2])
+  endfor
+endfunction
+
+nnoremap <buffer> <Leader>mQ :<C-u>call <SID>md_format_blockquote()<CR>
+xnoremap <buffer> <Leader>mQ :<C-u>'<,'>call <SID>md_format_blockquote()<CR>
+
 " 5.2 List items {{{2
 " feat: bullet list continuation {{{3
 " local options {{{4
