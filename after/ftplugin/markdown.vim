@@ -472,8 +472,8 @@ function! s:md_set_ordered_list() range abort
   call s:renumber_ordered_list(1, a:firstline, a:lastline)
 endfunction
 
-nnoremap <buffer> <Leader>mo :<C-u>call <SID>md_set_ordered_list()<CR>
-xnoremap <buffer> <Leader>mo :<C-u>'<,'>call <SID>md_set_ordered_list()<CR>
+nnoremap <buffer> <Leader>moi :<C-u>call <SID>md_set_ordered_list()<CR>
+xnoremap <buffer> <Leader>moi :<C-u>'<,'>call <SID>md_set_ordered_list()<CR>
 
 " s:renumber_ordered_list() {{{4
 function! s:renumber_ordered_list(start_from_one, start_lnum, end_lnum) abort
@@ -515,9 +515,6 @@ function! s:renumber_ordered_list(start_from_one, start_lnum, end_lnum) abort
   endfor
 endfunction
 
-xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>md_renumber_ordered_list(0)<CR>
-xnoremap <buffer> <Leader>mR :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR>
-
 " feat: ordered list renumbering (visual mode) {{{3
 " s:md_renumber_ordered_list() {{{4
 function! s:md_renumber_ordered_list(start_from_one) range abort
@@ -525,6 +522,9 @@ function! s:md_renumber_ordered_list(start_from_one) range abort
         \ a:start_from_one, a:firstline, a:lastline
         \ )
 endfunction
+
+xnoremap <buffer> <Leader>mof :<C-u>'<,'>call <SID>md_renumber_ordered_list(0)<CR>
+xnoremap <buffer> <Leader>moF :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR>
 
 " feat: line wrapping {{{3
 " s:md_format_line_wrapping() {{{4
