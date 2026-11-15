@@ -451,13 +451,36 @@ function! s:continue_ordered_list(lnum, offset) abort
   return max([1, str2nr(l:match[1]) + a:offset]) . l:match[2] . ' '
 endfunction
 
-" feat: ordered list renumbering {{{3
-" s:md_renumber_ordered_list() {{{4
-function! s:md_renumber_ordered_list(start_from_one) range
+" feat: ordered list insertion (normal/visual mode) {{{3
+" s:md_set_ordered_list() {{{4
+function! s:md_set_ordered_list() range abort
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+
+    " Skip blank lines and existing list markers.
+    if l:line =~# '^\s*$'
+          \ || l:line =~# '^\s*\%([-*+]\s\+\|\d\+[.)]\s*\)'
+      continue
+    endif
+
+    let l:indent = matchstr(l:line, '^\s*')
+    let l:text = strpart(l:line, strlen(l:indent))
+
+    call setline(l:lnum, l:indent . '1. ' . l:text)
+  endfor
+
+  call s:renumber_ordered_list(1, a:firstline, a:lastline)
+endfunction
+
+nnoremap <buffer> <Leader>mo :<C-u>call <SID>md_set_ordered_list()<CR>
+xnoremap <buffer> <Leader>mo :<C-u>'<,'>call <SID>md_set_ordered_list()<CR>
+
+" s:renumber_ordered_list() {{{4
+function! s:renumber_ordered_list(start_from_one, start_lnum, end_lnum) abort
   let l:counters = {}
   let l:delimiters = {}
 
-  for l:lnum in range(a:firstline, a:lastline)
+  for l:lnum in range(a:start_lnum, a:end_lnum)
     let l:line = getline(l:lnum)
     let l:match = matchlist(l:line, '^\(\s*\)\(\d\+\)\([.)]\)\s*')
 
@@ -494,6 +517,14 @@ endfunction
 
 xnoremap <buffer> <Leader>mr :<C-u>'<,'>call <SID>md_renumber_ordered_list(0)<CR>
 xnoremap <buffer> <Leader>mR :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR>
+
+" feat: ordered list renumbering (visual mode) {{{3
+" s:md_renumber_ordered_list() {{{4
+function! s:md_renumber_ordered_list(start_from_one) range abort
+  call s:renumber_ordered_list(
+        \ a:start_from_one, a:firstline, a:lastline
+        \ )
+endfunction
 
 " feat: line wrapping {{{3
 " s:md_format_line_wrapping() {{{4
