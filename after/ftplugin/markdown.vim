@@ -631,8 +631,8 @@ nnoremap <Leader>mr :<C-u>call <SID>md_set_task_list_state(0)<CR>
 xnoremap <Leader>mr :<C-u>'<,'>call <SID>md_set_task_list_state(0)<CR>
 
 " feat: task list state toggling (normal/visual mode) {{{3
-" s:md_toggle_task_state() {{{4
-function! s:md_toggle_task_state(start, end) abort
+" s:md_toggle_task_list_state() {{{4
+function! s:md_toggle_task_list_state(start, end) abort
   for l:lnum in range(a:start, a:end)
     let l:line = getline(l:lnum)
 
@@ -657,8 +657,8 @@ function! s:md_toggle_task_state(start, end) abort
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>md_toggle_task_state(line('.'), line('.'))<CR>
-xnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>md_toggle_task_state(line("'<"), line("'>"))<CR>
+nnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>md_toggle_task_list_state(line('.'), line('.'))<CR>
+xnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>md_toggle_task_list_state(line("'<"), line("'>"))<CR>
 
 " GFM Spec 6. Inlines {{{1
 " 6.3 Code spans {{{2
