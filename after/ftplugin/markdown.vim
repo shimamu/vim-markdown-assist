@@ -911,7 +911,7 @@ function! s:md_insert_link()
   call cursor(line('.'), l:col + 1)
 endfunction
 
-nnoremap <buffer> <Leader>ml :<C-u>call <SID>md_insert_link()<CR>
+nnoremap <buffer> <Leader>ma :<C-u>call <SID>md_insert_link()<CR>
 
 " s:get_clipboard_url() {{{4
 function! s:get_clipboard_url()
@@ -966,7 +966,7 @@ function! s:md_insert_link_with_title()
   call cursor(line('.'), l:col + strlen(l:title) + 1)
 endfunction
 
-nnoremap <buffer> <Leader>mll :<C-u>call <SID>md_insert_link_with_title()<CR>
+nnoremap <buffer> <Leader>mA :<C-u>call <SID>md_insert_link_with_title()<CR>
 
 " Modeline {{{1
 " vim:set ts=8 sts=2 sw=2 tw=0:
