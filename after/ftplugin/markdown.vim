@@ -666,7 +666,8 @@ xnoremap <buffer> <Leader>m<Space> :<C-u>'<,'>call <SID>md_toggle_task_list_stat
 
 " GFM Spec 6. Inlines {{{1
 " 6.3 Code spans {{{2
-" feat: code span wrapping (normal mode) {{{3
+" feat: code span wrapping (normal/visual mode) {{{3
+" NOTE: Visual mode uses s:md_wrap_code_visual() in 4.5 Fenced code blocks.
 " constants {{{4
 let s:CODE_SPAN = "`"
 
@@ -782,8 +783,6 @@ function! s:wrap_text_block(start, end, wrapper) abort
   call setline(l:start_line_no, l:new_lines)
 endfunction
 
-" feat: code span wrapping (visual mode) {{{3
-" REF: s:md_wrap_code_visual() in 4.5 Fenced code blocks.
 
 " s:wrap_text_visual() {{{4
 function! s:wrap_text_visual(wrapper) abort
