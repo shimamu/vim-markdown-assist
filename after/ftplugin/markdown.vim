@@ -352,6 +352,16 @@ execute 'nnoremap <buffer> <Leader>mth :<C-u>call <SID>md_table_add_column(' . s
 " local options {{{4
 setlocal comments+=n:>
 
+" feat: block quote insertion (normal/visual mode) {{{3
+function! s:md_set_blockquote() range abort
+  for l:lnum in range(a:firstline, a:lastline)
+    call setline(l:lnum, '> ' . getline(l:lnum))
+  endfor
+endfunction
+
+nnoremap <buffer> <Leader>mq :<C-u>call <SID>md_set_blockquote()<CR>
+xnoremap <buffer> <Leader>mq :call <SID>md_set_blockquote()<CR>
+
 " 5.2 List items {{{2
 " feat: bullet list continuation {{{3
 " local options {{{4
