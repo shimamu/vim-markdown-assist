@@ -893,7 +893,24 @@ endfunction
 nnoremap <buffer> <Leader>mu :<C-u>call <SID>md_unwrap()<CR>
 
 " 6.6 Links {{{2
-" s:get_clipboard_url() {{{3
+" feat: link insertion (normal mode) {{{3
+" s:md_insert_link() {{{4
+function! s:md_insert_link()
+  let l:url = s:get_clipboard_url()
+  let l:link = '[](' . l:url . ')'
+  let l:line = getline('.')
+  let l:col = col('.')
+
+  call setline('.', strpart(l:line, 0, l:col - 1)
+        \ . l:link . strpart(l:line, l:col - 1))
+
+  " Move cursor inside link text
+  call cursor(line('.'), l:col + 1)
+endfunction
+
+nnoremap <buffer> <Leader>ml :<C-u>call <SID>md_insert_link()<CR>
+
+" s:get_clipboard_url() {{{4
 function! s:get_clipboard_url()
   if executable('wl-paste')
     let l:url = system('wl-paste --no-newline')
@@ -912,7 +929,7 @@ function! s:get_clipboard_url()
   return l:url
 endfunction
 
-" s:get_url_title() {{{3
+" s:get_url_title() {{{4
 function! s:get_url_title(url)
   try
     let l:dom = webapi#html#parseURL(a:url)
@@ -931,22 +948,9 @@ function! s:get_url_title(url)
   endtry
 endfunction
 
-" s:insert_markdown_link() {{{3
-function! s:insert_markdown_link()
-  let l:url = s:get_clipboard_url()
-  let l:link = '[](' . l:url . ')'
-  let l:line = getline('.')
-  let l:col = col('.')
-
-  call setline('.', strpart(l:line, 0, l:col - 1)
-        \ . l:link . strpart(l:line, l:col - 1))
-
-  " Move cursor inside link text
-  call cursor(line('.'), l:col + 1)
-endfunction
-
-" s:insert_markdown_link_with_title() {{{3
-function! s:insert_markdown_link_with_title()
+" feat: link insertion with title (normal mode) {{{3
+" s:md_insert_link_with_title() {{{4
+function! s:md_insert_link_with_title()
   let l:url = s:get_clipboard_url()
   let l:title = empty(l:url) ? '' : s:get_url_title(l:url)
   let l:link = '[' . l:title . '](' . l:url . ')'
@@ -959,8 +963,7 @@ function! s:insert_markdown_link_with_title()
   call cursor(line('.'), l:col + strlen(l:title) + 1)
 endfunction
 
-nnoremap <buffer> <Leader>ml :<C-u>call <SID>insert_markdown_link()<CR>
-nnoremap <buffer> <Leader>mll :<C-u>call <SID>insert_markdown_link_with_title()<CR>
+nnoremap <buffer> <Leader>mll :<C-u>call <SID>md_insert_link_with_title()<CR>
 
 " {{{1 Custom features
 " {{{2 Completion
