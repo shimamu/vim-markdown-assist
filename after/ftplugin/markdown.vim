@@ -694,38 +694,38 @@ endfunction
 
 " s:wrap_text_char() {{{4
 function! s:wrap_text_char(start, end, wrapper) abort
-  let l:start_line_no = a:start[1]
+  let l:start_lnum = a:start[1]
   let l:start_col = a:start[2]
-  let l:end_line_no = a:end[1]
+  let l:end_lnum = a:end[1]
   let l:end_col = a:end[2]
 
-  let l:first_line = getline(l:start_line_no)
-  let l:last_line = getline(l:end_line_no)
+  let l:start_line = getline(l:start_lnum)
+  let l:end_line = getline(l:end_lnum)
 
   " Get the byte length of the last character.
-  let l:last_char = matchstr(strpart(l:last_line, l:end_col - 1), '^.')
-  let l:end_byte = l:end_col - 1 + strlen(l:last_char)
+  let l:end_char = matchstr(strpart(l:end_line, l:end_col - 1), '^.')
+  let l:end_byte = l:end_col - 1 + strlen(l:end_char)
 
-  if l:start_line_no == l:end_line_no
-    let l:new_line = strpart(l:first_line, 0, l:start_col - 1)
+  if l:start_lnum == l:end_lnum
+    let l:new_line = strpart(l:start_line, 0, l:start_col - 1)
           \ . a:wrapper
-          \ . strpart(l:first_line, l:start_col - 1, l:end_byte - l:start_col + 1)
+          \ . strpart(l:start_line, l:start_col - 1, l:end_byte - l:start_col + 1)
           \ . a:wrapper
-          \ . strpart(l:first_line, l:end_byte)
+          \ . strpart(l:start_line, l:end_byte)
 
-    call setline(l:start_line_no, l:new_line)
+    call setline(l:start_lnum, l:new_line)
   else
-    let l:new_lines = getline(l:start_line_no, l:end_line_no)
+    let l:new_lines = getline(l:start_lnum, l:end_lnum)
 
-    let l:new_lines[0] = strpart(l:first_line, 0, l:start_col - 1)
+    let l:new_lines[0] = strpart(l:start_line, 0, l:start_col - 1)
           \ . a:wrapper
-          \ . strpart(l:first_line, l:start_col - 1)
+          \ . strpart(l:start_line, l:start_col - 1)
 
-    let l:new_lines[-1] = strpart(l:last_line, 0, l:end_byte)
+    let l:new_lines[-1] = strpart(l:end_line, 0, l:end_byte)
           \ . a:wrapper
-          \ . strpart(l:last_line, l:end_byte)
+          \ . strpart(l:end_line, l:end_byte)
 
-    call setline(l:start_line_no, l:new_lines)
+    call setline(l:start_lnum, l:new_lines)
   endif
 endfunction
 
@@ -743,8 +743,8 @@ endfunction
 
 " s:wrap_text_block() {{{4
 function! s:wrap_text_block(start, end, wrapper) abort
-  let l:start_line_no = a:start[1]
-  let l:end_line_no = a:end[1]
+  let l:start_lnum = a:start[1]
+  let l:end_lnum = a:end[1]
 
   let l:start_vcol = virtcol("'<")
   let l:end_vcol = virtcol("'>")
@@ -753,25 +753,21 @@ function! s:wrap_text_block(start, end, wrapper) abort
     let [l:start_vcol, l:end_vcol] = [l:end_vcol, l:start_vcol]
   endif
 
-  let l:new_lines = getline(l:start_line_no, l:end_line_no)
+  let l:new_lines = getline(l:start_lnum, l:end_lnum)
 
   for l:i in range(len(l:new_lines))
     let l:line = l:new_lines[l:i]
-    let l:line_no = l:start_line_no + l:i
+    let l:lnum = l:start_lnum + l:i
 
-    let l:start_col = virtcol2col(0, l:line_no, l:start_vcol)
-    let l:end_col = virtcol2col(0, l:line_no, l:end_vcol)
+    let l:start_col = virtcol2col(0, l:lnum, l:start_vcol)
+    let l:end_col = virtcol2col(0, l:lnum, l:end_vcol)
 
     if l:start_col == 0
       continue
     endif
 
-    if l:end_col == 0
-      let l:end_byte = strlen(l:line)
-    else
-      let l:last_char = matchstr(strpart(l:line, l:end_col - 1), '^.')
-      let l:end_byte = l:end_col - 1 + strlen(l:last_char)
-    endif
+    let l:last_char = matchstr(strpart(l:line, l:end_col - 1), '^.')
+    let l:end_byte = l:end_col - 1 + strlen(l:last_char)
 
     let l:new_lines[l:i] = strpart(l:line, 0, l:start_col - 1)
           \ . a:wrapper
@@ -780,9 +776,8 @@ function! s:wrap_text_block(start, end, wrapper) abort
           \ . strpart(l:line, l:end_byte)
   endfor
 
-  call setline(l:start_line_no, l:new_lines)
+  call setline(l:start_lnum, l:new_lines)
 endfunction
-
 
 " s:wrap_text_visual() {{{4
 function! s:wrap_text_visual(wrapper) abort
