@@ -654,22 +654,32 @@ xnoremap <buffer> <Leader>m<Space> :<C-u>'<,'>call <SID>md_toggle_task_list_stat
 
 " GFM Spec 6. Inlines {{{1
 " 6.3 Code spans {{{2
-" constants {{{3
+" feat: code span wrapping (normal mode) {{{3
+" constants {{{4
 let s:CODE_SPAN = "`"
 
-" s:set_markdown_code() {{{3
-function! s:set_markdown_code(type) abort
+" s:md_wrap_code() {{{4
+function! s:md_wrap_code(type) abort
   call s:wrap_text(a:type, s:CODE_SPAN)
 endfunction
 
-nnoremap <buffer> <Leader>mc :<C-u>set operatorfunc=<SID>set_markdown_code<CR>g@
+nnoremap <buffer> <Leader>mc :<C-u>set operatorfunc=<SID>md_wrap_code<CR>g@
 
-" 6.4 Emphasis and strong emphasis {{{2
-" constants {{{3
-let s:EMPHASIS_BOLD = "**"
-let s:EMPHASIS_ITALIC = "_"
+" s:wrap_text() {{{4
+function! s:wrap_text(type, wrapper) abort
+  let l:start = getpos("'[")
+  let l:end = getpos("']")
 
-" s:wrap_text_char() {{{3
+  if a:type ==# 'char'
+    call s:wrap_text_char(l:start, l:end, a:wrapper)
+  elseif a:type ==# 'line'
+    call s:wrap_text_line(l:start, l:end, a:wrapper)
+  elseif a:type ==# 'block'
+    call s:wrap_text_block(l:start, l:end, a:wrapper)
+  endif
+endfunction
+
+" s:wrap_text_char() {{{4
 function! s:wrap_text_char(start, end, wrapper) abort
   let l:start_line_no = a:start[1]
   let l:start_col = a:start[2]
@@ -706,7 +716,7 @@ function! s:wrap_text_char(start, end, wrapper) abort
   endif
 endfunction
 
-" s:wrap_text_line() {{{3
+" s:wrap_text_line() {{{4
 function! s:wrap_text_line(start, end, wrapper) abort
   let l:start_line = a:start[1]
   let l:end_line = a:end[1]
@@ -718,7 +728,7 @@ function! s:wrap_text_line(start, end, wrapper) abort
   call setline(l:start_line, l:lines)
 endfunction
 
-" s:wrap_text_block() {{{3
+" s:wrap_text_block() {{{4
 function! s:wrap_text_block(start, end, wrapper) abort
   let l:start_line_no = a:start[1]
   let l:end_line_no = a:end[1]
@@ -760,19 +770,10 @@ function! s:wrap_text_block(start, end, wrapper) abort
   call setline(l:start_line_no, l:new_lines)
 endfunction
 
-" s:wrap_text() {{{3
-function! s:wrap_text(type, wrapper) abort
-  let l:start = getpos("'[")
-  let l:end = getpos("']")
-
-  if a:type ==# 'char'
-    call s:wrap_text_char(l:start, l:end, a:wrapper)
-  elseif a:type ==# 'line'
-    call s:wrap_text_line(l:start, l:end, a:wrapper)
-  elseif a:type ==# 'block'
-    call s:wrap_text_block(l:start, l:end, a:wrapper)
-  endif
-endfunction
+" 6.4 Emphasis and strong emphasis {{{2
+" constants {{{3
+let s:EMPHASIS_BOLD = "**"
+let s:EMPHASIS_ITALIC = "_"
 
 " s:wrap_text_visual() {{{3
 function! s:wrap_text_visual(wrapper) abort
