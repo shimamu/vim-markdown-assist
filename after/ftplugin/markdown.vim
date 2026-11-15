@@ -595,32 +595,15 @@ endfunction
 
 " feat: task list state setting and creation (normal/visual mode) {{{3
 " s:md_set_task_list_state() {{{4
-function! s:md_set_task_list_state(is_done) range
+function! s:md_set_task_list_state(is_done) range abort
+  let l:mark = a:is_done ? 'x' : ' '
+
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
 
-    if l:line =~# '^\s*-\s*\[[ x]\]'
-      let l:mark = a:is_done ? 'x' : ' '
-      let l:line = substitute(
-            \ l:line,
-            \ '^\(\s*-\s*\)\[[ x]\]',
-            \ '\1[' . l:mark . ']',
-            \ '')
-    elseif l:line =~# '^\s*-\s\+'
-      let l:line = substitute(
-            \ l:line,
-            \ '^\(\s*-\s\+\)',
-            \ '\1[ ] ',
-            \ '')
-    else
-      let l:line = substitute(
-            \ l:line,
-            \ '^\(\s*\)',
-            \ '\1- [ ] ',
-            \ '')
-    endif
-
-    call setline(l:lnum, l:line)
+    call setline(
+          \ l:lnum,
+          \ s:set_task_list_item(l:line, l:mark))
   endfor
 endfunction
 
@@ -630,35 +613,44 @@ xnoremap <Leader>md :<C-u>'<,'>call <SID>md_set_task_list_state(1)<CR>
 nnoremap <Leader>mr :<C-u>call <SID>md_set_task_list_state(0)<CR>
 xnoremap <Leader>mr :<C-u>'<,'>call <SID>md_set_task_list_state(0)<CR>
 
+" s:set_task_list_item() {{{4
+function! s:set_task_list_item(line, mark) abort
+  if a:line =~# '^\s*-\s*\[[ x]\]'
+    return substitute(
+          \ a:line,
+          \ '^\(\s*-\s*\)\[[ x]\]',
+          \ '\1[' . a:mark . ']',
+          \ '')
+  elseif a:line =~# '^\s*-\s\+'
+    return substitute(
+          \ a:line,
+          \ '^\(\s*-\s\+\)',
+          \ '\1[' . a:mark . '] ',
+          \ '')
+  else
+    return substitute(
+          \ a:line,
+          \ '^\(\s*\)',
+          \ '\1- [' . a:mark . '] ',
+          \ '')
+  endif
+endfunction
+
 " feat: task list state toggling (normal/visual mode) {{{3
 " s:md_toggle_task_list_state() {{{4
-function! s:md_toggle_task_list_state(start, end) abort
-  for l:lnum in range(a:start, a:end)
+function! s:md_toggle_task_list_state() range abort
+  for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
+    let l:mark = l:line =~# '^\s*-\s\+\[ \]' ? 'x' : ' '
 
-    if l:line =~# '^\s*-\s\+\[ \]'
-      let l:line = substitute(l:line, '\[ \]', '[x]', '')
-    elseif l:line =~# '^\s*-\s\+\[x\]'
-      let l:line = substitute(l:line, '\[x\]', '[ ]', '')
-    else
-      let l:line = substitute(
-            \ l:line,
-            \ '^\(\s*\)-\s\+',
-            \ '\1- [ ] ',
-            \ ''
-            \ )
-
-      if l:line !~# '^\s*-\s\+\[ \]'
-        let l:line = substitute(l:line, '^\(\s*\)', '\1- [ ] ', '')
-      endif
-    endif
-
-    call setline(l:lnum, l:line)
+    call setline(
+          \ l:lnum,
+          \ s:set_task_list_item(l:line, l:mark))
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>md_toggle_task_list_state(line('.'), line('.'))<CR>
-xnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>md_toggle_task_list_state(line("'<"), line("'>"))<CR>
+nnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>md_toggle_task_list_state()<CR>
+xnoremap <buffer> <Leader>m<Space> :<C-u>'<,'>call <SID>md_toggle_task_list_state()<CR>
 
 " GFM Spec 6. Inlines {{{1
 " 6.3 Code spans {{{2
