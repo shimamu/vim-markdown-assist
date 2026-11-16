@@ -908,62 +908,22 @@ function! s:wrap_text_visual(wrapper) abort
 endfunction
 
 " feat: code span unwrapping (normal mode) {{{3
-" NOTE: Unwrapping uses s:md_unwrap() in 6.4 Emphasis and strong emphasis.
-
-" 6.4 Emphasis and strong emphasis {{{2
-" feat: bold text wrapping (normal/visual mode) {{{3
-" constants {{{4
-const s:EMPHASIS_BOLD = "**"
-
-" s:md_wrap_bold() {{{4
-function! s:md_wrap_bold(type) abort
-  call s:wrap_text(a:type, s:EMPHASIS_BOLD)
+" s:md_unwrap_code() {{{4
+function! s:md_unwrap_code() abort
+  call s:unwrap_wrappers([s:CODE_SPAN])
 endfunction
 
-nnoremap <buffer> <Leader>mbi :<C-u>set operatorfunc=<SID>md_wrap_bold<CR>g@
+nnoremap <buffer> <Leader>mcu :<C-u>call <SID>md_unwrap_code()<CR>
 
-" s:md_wrap_bold_visual() {{{4
-function! s:md_wrap_bold_visual() abort
-  call s:wrap_text_visual(s:EMPHASIS_BOLD)
-endfunction
-
-xnoremap <buffer> <Leader>mbi :<C-u>call <SID>md_wrap_bold_visual()<CR>
-
-" feat: italic text wrapping (normal/visual mode) {{{3
-" constants {{{4
-const s:EMPHASIS_ITALIC = "_"
-
-" s:md_wrap_italic() {{{4
-function! s:md_wrap_italic(type) abort
-  call s:wrap_text(a:type, s:EMPHASIS_ITALIC)
-endfunction
-
-nnoremap <buffer> <Leader>mii :<C-u>set operatorfunc=<SID>md_wrap_italic<CR>g@
-
-" s:md_wrap_italic_visual() {{{4
-function! s:md_wrap_italic_visual() abort
-  call s:wrap_text_visual(s:EMPHASIS_ITALIC)
-endfunction
-
-xnoremap <buffer> <Leader>mii :<C-u>call <SID>md_wrap_italic_visual()<CR>
-
-" feat: emphasis text (bold, italic) unwrapping (normal mode) {{{3
-" constants {{{4
-const s:MD_UNWRAP_WRAPPERS = [
-      \ s:EMPHASIS_BOLD,
-      \ s:EMPHASIS_ITALIC,
-      \ s:CODE_SPAN,
-      \ ]
-
-" s:md_unwrap() {{{4
-function! s:md_unwrap() abort
+" s:unwrap_wrappers() {{{4
+function! s:unwrap_wrappers(wrappers) abort
   let l:line = getline('.')
   let l:col = col('.')
   let l:nearest_start_byte = -1
   let l:nearest_end_byte = -1
   let l:nearest_wrapper = ''
 
-  for l:wrapper in s:MD_UNWRAP_WRAPPERS
+  for l:wrapper in a:wrappers
     let l:wrapper_len = strlen(l:wrapper)
     let l:start_byte = strridx(strpart(l:line, 0, l:col - 1), l:wrapper)
     let l:end_byte = stridx(l:line, l:wrapper, l:col - 1)
@@ -994,7 +954,73 @@ function! s:md_unwrap() abort
   call setline('.', l:new_line)
 endfunction
 
-nnoremap <buffer> <Leader>mwu :<C-u>call <SID>md_unwrap()<CR>
+" 6.4 Emphasis and strong emphasis {{{2
+" feat: bold text wrapping (normal/visual mode) {{{3
+" constants {{{4
+const s:EMPHASIS_BOLD = "**"
+
+" s:md_wrap_bold() {{{4
+function! s:md_wrap_bold(type) abort
+  call s:wrap_text(a:type, s:EMPHASIS_BOLD)
+endfunction
+
+nnoremap <buffer> <Leader>mbi :<C-u>set operatorfunc=<SID>md_wrap_bold<CR>g@
+
+" s:md_wrap_bold_visual() {{{4
+function! s:md_wrap_bold_visual() abort
+  call s:wrap_text_visual(s:EMPHASIS_BOLD)
+endfunction
+
+xnoremap <buffer> <Leader>mbi :<C-u>call <SID>md_wrap_bold_visual()<CR>
+
+" feat: bold text unwrapping (normal mode) {{{3
+" s:md_unwrap_bold() {{{4
+function! s:md_unwrap_bold() abort
+  call s:unwrap_wrappers([s:EMPHASIS_BOLD])
+endfunction
+
+nnoremap <buffer> <Leader>mbu :<C-u>call <SID>md_unwrap_bold()<CR>
+
+" feat: italic text wrapping (normal/visual mode) {{{3
+" constants {{{4
+const s:EMPHASIS_ITALIC = "_"
+
+" s:md_wrap_italic() {{{4
+function! s:md_wrap_italic(type) abort
+  call s:wrap_text(a:type, s:EMPHASIS_ITALIC)
+endfunction
+
+nnoremap <buffer> <Leader>mii :<C-u>set operatorfunc=<SID>md_wrap_italic<CR>g@
+
+" s:md_wrap_italic_visual() {{{4
+function! s:md_wrap_italic_visual() abort
+  call s:wrap_text_visual(s:EMPHASIS_ITALIC)
+endfunction
+
+xnoremap <buffer> <Leader>mii :<C-u>call <SID>md_wrap_italic_visual()<CR>
+
+" feat: italic text unwrapping (normal mode) {{{3
+" s:md_unwrap_italic() {{{4
+function! s:md_unwrap_italic() abort
+  call s:unwrap_wrappers([s:EMPHASIS_ITALIC])
+endfunction
+
+nnoremap <buffer> <Leader>miu :<C-u>call <SID>md_unwrap_italic()<CR>
+
+" feat: nearest Markdown wrapper unwrapping (normal mode) {{{3
+" constants {{{4
+const s:MD_UNWRAP_WRAPPERS = [
+      \ s:EMPHASIS_BOLD,
+      \ s:EMPHASIS_ITALIC,
+      \ s:CODE_SPAN,
+      \ ]
+
+" s:md_unwrap() {{{4
+function! s:md_unwrap_nearest() abort
+  call s:unwrap_wrappers(s:MD_UNWRAP_WRAPPERS)
+endfunction
+
+nnoremap <buffer> <Leader>mwu :<C-u>call <SID>md_unwrap_nearest()<CR>
 
 " 6.6 Links {{{2
 " feat: link insertion (normal mode) {{{3
