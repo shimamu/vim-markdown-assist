@@ -723,11 +723,11 @@ function! s:md_set_task_list_state(is_done) range abort
   endfor
 endfunction
 
-nnoremap <Leader>md :<C-u>call <SID>md_set_task_list_state(1)<CR>
-xnoremap <Leader>md :<C-u>'<,'>call <SID>md_set_task_list_state(1)<CR>
+nnoremap <Leader>mkd :<C-u>call <SID>md_set_task_list_state(1)<CR>
+xnoremap <Leader>mkd :<C-u>'<,'>call <SID>md_set_task_list_state(1)<CR>
 
-nnoremap <Leader>mr :<C-u>call <SID>md_set_task_list_state(0)<CR>
-xnoremap <Leader>mr :<C-u>'<,'>call <SID>md_set_task_list_state(0)<CR>
+nnoremap <Leader>mk<Space> :<C-u>call <SID>md_set_task_list_state(0)<CR>
+xnoremap <Leader>mk<Space> :<C-u>'<,'>call <SID>md_set_task_list_state(0)<CR>
 
 " s:set_task_list_item() {{{4
 function! s:set_task_list_item(line, mark) abort
@@ -765,8 +765,8 @@ function! s:md_toggle_task_list_state() range abort
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>m<Space> :<C-u>call <SID>md_toggle_task_list_state()<CR>
-xnoremap <buffer> <Leader>m<Space> :<C-u>'<,'>call <SID>md_toggle_task_list_state()<CR>
+nnoremap <buffer> <Leader>mkt :<C-u>call <SID>md_toggle_task_list_state()<CR>
+xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_state()<CR>
 
 " GFM Spec 6. Inlines {{{1
 " 6.3 Code spans {{{2
