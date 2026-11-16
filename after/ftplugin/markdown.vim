@@ -24,7 +24,7 @@ setlocal formatoptions+=n
 
 " GFM Spec 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
-" feat: header insertion and modification (normal mode) {{{3
+" feat: header insertion (normal mode) {{{3
 " s:md_set_header(level) {{{4
 function! s:md_set_header(level) abort
   if a:level < 0 || a:level > 6
@@ -50,6 +50,9 @@ nnoremap <buffer> <Leader>mhi3 :<C-u>call <SID>md_set_header(3)<CR>
 nnoremap <buffer> <Leader>mhi4 :<C-u>call <SID>md_set_header(4)<CR>
 nnoremap <buffer> <Leader>mhi5 :<C-u>call <SID>md_set_header(5)<CR>
 nnoremap <buffer> <Leader>mhi6 :<C-u>call <SID>md_set_header(6)<CR>
+
+" feat: header unwrapping (normal mode) {{{3
+" mappings {{{4
 nnoremap <buffer> <Leader>mhu :<C-u>call <SID>md_set_header(0)<CR>
 
 " 4.5 Fenced code blocks {{{2
