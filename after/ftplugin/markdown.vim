@@ -421,11 +421,11 @@ function! s:md_set_bullet_list(force_dash) range abort
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>ml :<C-u>call <SID>md_set_bullet_list(0)<CR>
-xnoremap <buffer> <Leader>ml :<C-u>'<,'>call <SID>md_set_bullet_list(0)<CR>
+nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_set_bullet_list(0)<CR>
+xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_set_bullet_list(0)<CR>
 
-nnoremap <buffer> <Leader>mL :<C-u>call <SID>md_set_bullet_list(1)<CR>
-xnoremap <buffer> <Leader>mL :<C-u>'<,'>call <SID>md_set_bullet_list(1)<CR>
+nnoremap <buffer> <Leader>mlI :<C-u>call <SID>md_set_bullet_list(1)<CR>
+xnoremap <buffer> <Leader>mlI :<C-u>'<,'>call <SID>md_set_bullet_list(1)<CR>
 
 " feat: ordered list continuation {{{3
 " s:md_continue_list() {{{4
