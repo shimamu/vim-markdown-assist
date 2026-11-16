@@ -920,14 +920,14 @@ function! s:md_wrap_bold(type) abort
   call s:wrap_text(a:type, s:EMPHASIS_BOLD)
 endfunction
 
-nnoremap <buffer> <Leader>mb :<C-u>set operatorfunc=<SID>md_wrap_bold<CR>g@
+nnoremap <buffer> <Leader>mbi :<C-u>set operatorfunc=<SID>md_wrap_bold<CR>g@
 
 " s:md_wrap_bold_visual() {{{4
 function! s:md_wrap_bold_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_BOLD)
 endfunction
 
-xnoremap <buffer> <Leader>mb :<C-u>call <SID>md_wrap_bold_visual()<CR>
+xnoremap <buffer> <Leader>mbi :<C-u>call <SID>md_wrap_bold_visual()<CR>
 
 " feat: italic text wrapping (normal/visual mode) {{{3
 " constants {{{4
@@ -938,14 +938,14 @@ function! s:md_wrap_italic(type) abort
   call s:wrap_text(a:type, s:EMPHASIS_ITALIC)
 endfunction
 
-nnoremap <buffer> <Leader>mi :<C-u>set operatorfunc=<SID>md_wrap_italic<CR>g@
+nnoremap <buffer> <Leader>mii :<C-u>set operatorfunc=<SID>md_wrap_italic<CR>g@
 
 " s:md_wrap_italic_visual() {{{4
 function! s:md_wrap_italic_visual() abort
   call s:wrap_text_visual(s:EMPHASIS_ITALIC)
 endfunction
 
-xnoremap <buffer> <Leader>mi :<C-u>call <SID>md_wrap_italic_visual()<CR>
+xnoremap <buffer> <Leader>mii :<C-u>call <SID>md_wrap_italic_visual()<CR>
 
 " feat: emphasis text (bold, italic) unwrapping (normal mode) {{{3
 " constants {{{4
