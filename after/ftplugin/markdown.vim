@@ -55,7 +55,7 @@ nnoremap <buffer> <Leader>mhu :<C-u>call <SID>md_set_header(0)<CR>
 " 4.5 Fenced code blocks {{{2
 " feat: fenced code block wrapping (visual mode) {{{3
 " constants {{{4
-let s:CODE_BLOCK_MARKER = '```'
+const s:CODE_BLOCK_MARKER = '```'
 
 " s:md_wrap_code_visual() {{{4
 function! s:md_wrap_code_visual() abort
@@ -773,7 +773,7 @@ xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_state()<C
 " feat: code span wrapping (normal/visual mode) {{{3
 " NOTE: Visual mode uses s:md_wrap_code_visual() in 4.5 Fenced code blocks.
 " constants {{{4
-let s:CODE_SPAN = "`"
+const s:CODE_SPAN = "`"
 
 " s:md_wrap_code() {{{4
 function! s:md_wrap_code(type) abort
@@ -913,7 +913,7 @@ endfunction
 " 6.4 Emphasis and strong emphasis {{{2
 " feat: bold text wrapping (normal/visual mode) {{{3
 " constants {{{4
-let s:EMPHASIS_BOLD = "**"
+const s:EMPHASIS_BOLD = "**"
 
 " s:md_wrap_bold() {{{4
 function! s:md_wrap_bold(type) abort
@@ -931,7 +931,7 @@ xnoremap <buffer> <Leader>mbi :<C-u>call <SID>md_wrap_bold_visual()<CR>
 
 " feat: italic text wrapping (normal/visual mode) {{{3
 " constants {{{4
-let s:EMPHASIS_ITALIC = "_"
+const s:EMPHASIS_ITALIC = "_"
 
 " s:md_wrap_italic() {{{4
 function! s:md_wrap_italic(type) abort
@@ -949,7 +949,7 @@ xnoremap <buffer> <Leader>mii :<C-u>call <SID>md_wrap_italic_visual()<CR>
 
 " feat: emphasis text (bold, italic) unwrapping (normal mode) {{{3
 " constants {{{4
-let s:MD_UNWRAP_WRAPPERS = [
+const s:MD_UNWRAP_WRAPPERS = [
       \ s:EMPHASIS_BOLD,
       \ s:EMPHASIS_ITALIC,
       \ s:CODE_SPAN,
