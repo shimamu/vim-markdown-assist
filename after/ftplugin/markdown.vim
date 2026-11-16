@@ -66,7 +66,7 @@ function! s:md_wrap_code_visual() abort
   endif
 endfunction
 
-xnoremap <buffer> <Leader>mc :<C-u>call <SID>md_wrap_code_visual()<CR>
+xnoremap <buffer> <Leader>mci :<C-u>call <SID>md_wrap_code_visual()<CR>
 
 " s:wrap_code_block() {{{4
 function! s:wrap_code_block() abort
@@ -780,7 +780,7 @@ function! s:md_wrap_code(type) abort
   call s:wrap_text(a:type, s:CODE_SPAN)
 endfunction
 
-nnoremap <buffer> <Leader>mc :<C-u>set operatorfunc=<SID>md_wrap_code<CR>g@
+nnoremap <buffer> <Leader>mci :<C-u>set operatorfunc=<SID>md_wrap_code<CR>g@
 
 " s:wrap_text() {{{4
 function! s:wrap_text(type, wrapper) abort
