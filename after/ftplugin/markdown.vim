@@ -359,8 +359,8 @@ function! s:md_set_blockquote() range abort
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mq :<C-u>call <SID>md_set_blockquote()<CR>
-xnoremap <buffer> <Leader>mq :call <SID>md_set_blockquote()<CR>
+nnoremap <buffer> <Leader>mqi :<C-u>call <SID>md_set_blockquote()<CR>
+xnoremap <buffer> <Leader>mqi :call <SID>md_set_blockquote()<CR>
 
 " feat: block quote formatting (normal/visual mode) {{{3
 " s:md_format_blockquote() {{{4
@@ -385,8 +385,8 @@ function! s:md_format_blockquote() range abort
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mQ :<C-u>call <SID>md_format_blockquote()<CR>
-xnoremap <buffer> <Leader>mQ :<C-u>'<,'>call <SID>md_format_blockquote()<CR>
+nnoremap <buffer> <Leader>mqf :<C-u>call <SID>md_format_blockquote()<CR>
+xnoremap <buffer> <Leader>mqf :<C-u>'<,'>call <SID>md_format_blockquote()<CR>
 
 " 5.2 List items {{{2
 " feat: bullet list continuation {{{3
