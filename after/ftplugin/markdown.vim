@@ -994,7 +994,7 @@ function! s:md_unwrap() abort
   call setline('.', l:new_line)
 endfunction
 
-nnoremap <buffer> <Leader>mu :<C-u>call <SID>md_unwrap()<CR>
+nnoremap <buffer> <Leader>mwu :<C-u>call <SID>md_unwrap()<CR>
 
 " 6.6 Links {{{2
 " feat: link insertion (normal mode) {{{3
