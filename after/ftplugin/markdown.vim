@@ -723,11 +723,11 @@ function! s:md_set_task_list_state(is_done) range abort
   endfor
 endfunction
 
-nnoremap <Leader>mkd :<C-u>call <SID>md_set_task_list_state(1)<CR>
-xnoremap <Leader>mkd :<C-u>'<,'>call <SID>md_set_task_list_state(1)<CR>
+nnoremap <buffer> <Leader>mkd :<C-u>call <SID>md_set_task_list_state(1)<CR>
+xnoremap <buffer> <Leader>mkd :<C-u>'<,'>call <SID>md_set_task_list_state(1)<CR>
 
-nnoremap <Leader>mk<Space> :<C-u>call <SID>md_set_task_list_state(0)<CR>
-xnoremap <Leader>mk<Space> :<C-u>'<,'>call <SID>md_set_task_list_state(0)<CR>
+nnoremap <buffer> <Leader>mk<Space> :<C-u>call <SID>md_set_task_list_state(0)<CR>
+xnoremap <buffer> <Leader>mk<Space> :<C-u>'<,'>call <SID>md_set_task_list_state(0)<CR>
 
 " s:set_task_list_item() {{{4
 function! s:set_task_list_item(line, mark) abort
