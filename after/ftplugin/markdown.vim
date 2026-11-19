@@ -385,43 +385,45 @@ nnoremap <buffer> <Leader>mqf :<C-u>call <SID>md_format_block_quote()<CR>
 xnoremap <buffer> <Leader>mqf :<C-u>'<,'>call <SID>md_format_block_quote()<CR>
 
 " 5.2 List items {{{2
-" feat: bullet list continuation {{{3
+" feat: bullet list items continuation {{{3
 " local options {{{4
 setlocal comments+=b:*,b:-,b:+
 
-" feat: bullet list insertion (normal/visual mode) {{{3
-" s:md_set_bullet_list() {{{4
-function! s:md_set_bullet_list(force_dash) range abort
+" feat: bullet list items insertion (normal/visual mode) {{{3
+" s:md_insert_bullet_list_items() {{{4
+function! s:md_insert_bullet_list_items() range abort
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
 
     if l:line =~# '^\s*[-*+]\s\+'
-      if a:force_dash
-        let l:line = substitute(
-              \ l:line,
-              \ '^\(\s*\)[*+]',
-              \ '\1-',
-              \ '')
-      endif
-    elseif l:line !~# '^\s*\d\+[.)]\s\+'
-      let l:line = substitute(
-            \ l:line,
-            \ '^\(\s*\)',
-            \ '\1- ',
-            \ '')
-    else
+          \ || l:line =~# '^\s*\d\+[.)]\s\+'
       continue
     endif
 
-    call setline(l:lnum, l:line)
+    call setline(
+          \ l:lnum,
+          \ substitute(l:line, '^\(\s*\)', '\1- ', ''))
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_set_bullet_list(0)<CR>
-xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_set_bullet_list(0)<CR>
+nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_insert_bullet_list_items()<CR>
+xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items()<CR>
 
-nnoremap <buffer> <Leader>mlI :<C-u>call <SID>md_set_bullet_list(1)<CR>
-xnoremap <buffer> <Leader>mlI :<C-u>'<,'>call <SID>md_set_bullet_list(1)<CR>
+" s:md_format_bullet_list_items() {{{4
+function! s:md_format_bullet_list_items() range abort
+  for l:lnum in range(a:firstline, a:lastline)
+    call setline(
+          \ l:lnum,
+          \ substitute(
+          \   getline(l:lnum),
+          \   '^\(\s*\)[*+]\(\s\+\)',
+          \   '\1-\2',
+          \   ''))
+  endfor
+endfunction
+
+nnoremap <buffer> <Leader>mlf :<C-u>call <SID>md_format_bullet_list_items()<CR>
+xnoremap <buffer> <Leader>mlf :<C-u>'<,'>call <SID>md_format_bullet_list_items()<CR>
 
 " feat: ordered list continuation {{{3
 " s:md_continue_list() {{{4
