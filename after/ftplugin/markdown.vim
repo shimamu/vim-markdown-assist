@@ -60,31 +60,20 @@ endfunction
 nnoremap <buffer> <Leader>mhu :<C-u>call <SID>md_unwrap_heading()<CR>
 
 " 4.5 Fenced code blocks {{{2
-" feat: fenced code block wrapping (visual mode) {{{3
+" feat: fenced code block wrapping (normal/visual mode) {{{3
 " constants {{{4
-const s:CODE_BLOCK_MARKER = '```'
+const s:MD_FENCED_CODE_BLOCK = '```'
 
-" s:md_wrap_code_visual() {{{4
-function! s:md_wrap_code_visual() abort
-  if visualmode() ==# 'v'
-    call s:wrap_text_visual(s:CODE_SPAN)
-  else
-    call s:wrap_code_block()
-  endif
+" s:md_wrap_fenced_code_block() {{{4
+function! s:md_wrap_fenced_code_block(start, end) abort
+  call append(a:start - 1, s:MD_FENCED_CODE_BLOCK)
+  call append(a:end + 1, s:MD_FENCED_CODE_BLOCK)
+
+  call cursor(a:start + 1, 1)
 endfunction
 
-xnoremap <buffer> <Leader>mci :<C-u>call <SID>md_wrap_code_visual()<CR>
-
-" s:wrap_code_block() {{{4
-function! s:wrap_code_block() abort
-  let l:start = line("'<")
-  let l:end = line("'>")
-
-  call append(l:start - 1, s:CODE_BLOCK_MARKER)
-  call append(l:end + 1, s:CODE_BLOCK_MARKER)
-
-  call cursor(l:start + 1, 1)
-endfunction
+nnoremap <buffer> <Leader>mfw :<C-u>call <SID>md_wrap_fenced_code_block(line('.'), line('.'))<CR>
+xnoremap <buffer> <Leader>mfw :<C-u>call <SID>md_wrap_fenced_code_block(line("'<"), line("'>"))<CR>
 
 " 4.10 Tables (extension) {{{2
 " feat: convert text and CSV to Markdown table and format it (normal/visual mode) {{{3
