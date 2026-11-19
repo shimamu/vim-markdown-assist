@@ -349,18 +349,18 @@ execute 'nnoremap <buffer> <Leader>mtah :<C-u>call <SID>md_table_add_column(' . 
 setlocal comments+=n:>
 
 " feat: block quote insertion (normal/visual mode) {{{3
-function! s:md_set_blockquote() range abort
+function! s:md_insert_block_quote() range abort
   for l:lnum in range(a:firstline, a:lastline)
     call setline(l:lnum, '> ' . getline(l:lnum))
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mqi :<C-u>call <SID>md_set_blockquote()<CR>
-xnoremap <buffer> <Leader>mqi :call <SID>md_set_blockquote()<CR>
+nnoremap <buffer> <Leader>mqi :<C-u>call <SID>insert_block_quote()<CR>
+xnoremap <buffer> <Leader>mqi :call <SID>insert_block_quote()<CR>
 
 " feat: block quote formatting (normal/visual mode) {{{3
-" s:md_format_blockquote() {{{4
-function! s:md_format_blockquote() range abort
+" s:md_format_block_quote() {{{4
+function! s:md_format_block_quote() range abort
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
 
@@ -381,8 +381,8 @@ function! s:md_format_blockquote() range abort
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mqf :<C-u>call <SID>md_format_blockquote()<CR>
-xnoremap <buffer> <Leader>mqf :<C-u>'<,'>call <SID>md_format_blockquote()<CR>
+nnoremap <buffer> <Leader>mqf :<C-u>call <SID>md_format_block_quote()<CR>
+xnoremap <buffer> <Leader>mqf :<C-u>'<,'>call <SID>md_format_block_quote()<CR>
 
 " 5.2 List items {{{2
 " feat: bullet list continuation {{{3
