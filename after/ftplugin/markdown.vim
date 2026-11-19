@@ -24,10 +24,10 @@ setlocal formatoptions+=n
 
 " GFM Spec 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
-" feat: header insertion (normal mode) {{{3
-" s:md_set_header(level) {{{4
-function! s:md_set_header(level) abort
-  if a:level < 0 || a:level > 6
+" feat: heading insertion (normal mode) {{{3
+" s:md_insert_heading(level) {{{4
+function! s:md_insert_heading(level) abort
+  if a:level < 1 || a:level > 6
     return
   endif
 
@@ -37,23 +37,27 @@ function! s:md_set_header(level) abort
   let l:line = substitute(l:line, '^#\+\s*', '', '')
 
   " Add specified number of header marks
-  if a:level > 0
-    let l:line = repeat('#', a:level) . ' ' . l:line
-  endif
+  let l:line = repeat('#', a:level) . ' ' . l:line
 
   call setline('.', l:line)
 endfunction
 
-nnoremap <buffer> <Leader>mhi1 :<C-u>call <SID>md_set_header(1)<CR>
-nnoremap <buffer> <Leader>mhi2 :<C-u>call <SID>md_set_header(2)<CR>
-nnoremap <buffer> <Leader>mhi3 :<C-u>call <SID>md_set_header(3)<CR>
-nnoremap <buffer> <Leader>mhi4 :<C-u>call <SID>md_set_header(4)<CR>
-nnoremap <buffer> <Leader>mhi5 :<C-u>call <SID>md_set_header(5)<CR>
-nnoremap <buffer> <Leader>mhi6 :<C-u>call <SID>md_set_header(6)<CR>
+nnoremap <buffer> <Leader>mhI1 :<C-u>call <SID>md_insert_heading(1)<CR>
+nnoremap <buffer> <Leader>mhI2 :<C-u>call <SID>md_insert_heading(2)<CR>
+nnoremap <buffer> <Leader>mhI3 :<C-u>call <SID>md_insert_heading(3)<CR>
+nnoremap <buffer> <Leader>mhI4 :<C-u>call <SID>md_insert_heading(4)<CR>
+nnoremap <buffer> <Leader>mhI5 :<C-u>call <SID>md_insert_heading(5)<CR>
+nnoremap <buffer> <Leader>mhI6 :<C-u>call <SID>md_insert_heading(6)<CR>
 
-" feat: header unwrapping (normal mode) {{{3
-" mappings {{{4
-nnoremap <buffer> <Leader>mhu :<C-u>call <SID>md_set_header(0)<CR>
+" feat: heading unwrapping (normal mode) {{{3
+" s:md_unwrap_heading() {{{4
+function! s:md_unwrap_heading() abort
+  let l:line = getline('.')
+  let l:line = substitute(l:line, '^#\+\s*', '', '')
+  call setline('.', l:line)
+endfunction
+
+nnoremap <buffer> <Leader>mhu :<C-u>call <SID>md_unwrap_heading()<CR>
 
 " 4.5 Fenced code blocks {{{2
 " feat: fenced code block wrapping (visual mode) {{{3
