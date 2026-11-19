@@ -409,6 +409,7 @@ endfunction
 nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_insert_bullet_list_items()<CR>
 xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items()<CR>
 
+" feat: bullet list items formatting (normal/visual mode) {{{3
 " s:md_format_bullet_list_items() {{{4
 function! s:md_format_bullet_list_items() range abort
   for l:lnum in range(a:firstline, a:lastline)
