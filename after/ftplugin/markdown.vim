@@ -532,6 +532,123 @@ xnoremap <buffer> <Leader>moF :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<C
 " feat: line wrapping {{{3
 " s:md_format_line_wrapping() {{{4
 function! s:md_format_line_wrapping() abort
+  if mode(1) =~# '^i'
+    return s:format_line_wrapping_in_insert_mode()
+  endif
+
+  return s:format_line_wrapping_in_normal_or_visual_mode()
+endfunction
+
+setlocal formatexpr=<SID>md_format_line_wrapping()
+
+" s:format_line_wrapping_in_insert_mode() {{{4
+function! s:format_line_wrapping_in_insert_mode() abort
+  let l:line = getline(v:lnum)
+
+  " Split the line at the cursor position.
+  let l:prefix = strpart(l:line, 0, col('.') - 1)
+  let l:suffix = strpart(l:line, col('.') - 1)
+
+  let l:match = matchlist(
+        \ l:prefix,
+        \ '^\(\s*\)\([-*+]\s\+\(\[[ xX]\]\s\+\)\?\)\(.*\)$')
+
+  if empty(l:match)
+    return 1
+  endif
+
+  let l:indent = l:match[1]
+  let l:marker = l:match[2]
+  let l:text = l:match[4]
+  let l:continuation_indent =
+        \ l:indent . repeat(' ', strdisplaywidth(l:marker))
+
+  " Calculate the available text width.
+  let l:textwidth = max([
+        \ 1,
+        \ &l:textwidth - strdisplaywidth(l:indent . l:marker)
+        \ ])
+
+  " Calculate the display width before the cursor.
+  let l:prefix_width = strdisplaywidth(l:prefix)
+
+  " Do not wrap while inserting consecutive whitespace.
+  if v:char =~# '^[ \t]$'
+    return 0
+  endif
+
+  " Determine the wrapping position.
+  if l:prefix_width > &l:textwidth
+    let l:break_byte = strlen(l:text)
+  elseif strdisplaywidth(v:char) == 2
+    let l:break_byte = strlen(l:text)
+  elseif !empty(l:text)
+        \ && strdisplaywidth(strcharpart(
+        \ l:text, strchars(l:text) - 1, 1)) == 2
+    let l:break_byte = strlen(l:text)
+  else
+    " Find the last word boundary and double-width character.
+    let l:word_boundary = -1
+    let l:double_width_boundary = -1
+    let l:width = 0
+
+    for l:i in range(0, strchars(l:text) - 1)
+      let l:char = strcharpart(l:text, l:i, 1)
+      let l:char_width = strdisplaywidth(l:char, l:width)
+
+      if l:width + l:char_width > l:textwidth
+        break
+      endif
+
+      if l:char =~# '^[ \t]$'
+        let l:word_boundary =
+              \ strlen(strcharpart(l:text, 0, l:i))
+      endif
+
+      if l:char_width == 2
+        let l:double_width_boundary =
+              \ strlen(strcharpart(l:text, 0, l:i + 1))
+      endif
+
+      let l:width += l:char_width
+    endfor
+
+    let l:break_byte = max([
+          \ l:word_boundary,
+          \ l:double_width_boundary
+          \ ])
+
+    if l:break_byte < 0
+      return 0
+    endif
+  endif
+
+  " Build the continuation line.
+  let l:first_line = strpart(l:text, 0, l:break_byte)
+  let l:second_line = strpart(l:text, l:break_byte) . l:suffix
+
+  " Remove trailing whitespace from the first line.
+  let l:first_line = substitute(l:first_line, '[ \t]\+$', '', '')
+
+  " Remove leading whitespace from the continuation line.
+  let l:second_line = substitute(l:second_line, '^[ \t]\+', '', '')
+
+  " Replace the current line and insert the continuation line.
+  call setline(v:lnum, l:indent . l:marker . l:first_line)
+  call append(v:lnum, l:continuation_indent . l:second_line)
+
+  " Restore the cursor position on the continuation line.
+  let l:cursor_offset_col = strdisplaywidth(strpart(l:text, l:break_byte + 1))
+  let l:cursor_col =
+        \ strdisplaywidth(l:continuation_indent) + l:cursor_offset_col + 1
+
+  call cursor(v:lnum + 1, l:cursor_col)
+
+  return 0
+endfunction
+
+" s:format_line_wrapping_in_normal_or_visual_mode() {{{4
+function! s:format_line_wrapping_in_normal_or_visual_mode()
   let l:start_lnum = v:lnum
   let l:end_lnum = l:start_lnum + v:count - 1
   let l:lines = getline(l:start_lnum, l:end_lnum)
@@ -598,8 +715,6 @@ function! s:md_format_line_wrapping() abort
 
   return 0
 endfunction
-
-setlocal formatexpr=<SID>md_format_line_wrapping()
 
 " s:is_blank_line() {{{4
 function! s:is_blank_line(line) abort
