@@ -882,7 +882,6 @@ xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_state()<C
 " GFM Spec 6. Inlines {{{1
 " 6.3 Code spans {{{2
 " feat: code span wrapping (normal/visual mode) {{{3
-" NOTE: Visual mode uses s:md_wrap_code_visual() in 4.5 Fenced code blocks.
 " constants {{{4
 const s:MD_CODE_SPAN = "`"
 
