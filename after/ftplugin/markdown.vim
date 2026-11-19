@@ -42,12 +42,12 @@ function! s:md_insert_heading(level) abort
   call setline('.', l:line)
 endfunction
 
-nnoremap <buffer> <Leader>mhI1 :<C-u>call <SID>md_insert_heading(1)<CR>
-nnoremap <buffer> <Leader>mhI2 :<C-u>call <SID>md_insert_heading(2)<CR>
-nnoremap <buffer> <Leader>mhI3 :<C-u>call <SID>md_insert_heading(3)<CR>
-nnoremap <buffer> <Leader>mhI4 :<C-u>call <SID>md_insert_heading(4)<CR>
-nnoremap <buffer> <Leader>mhI5 :<C-u>call <SID>md_insert_heading(5)<CR>
-nnoremap <buffer> <Leader>mhI6 :<C-u>call <SID>md_insert_heading(6)<CR>
+nnoremap <buffer> <Leader>mhi1 :<C-u>call <SID>md_insert_heading(1)<CR>
+nnoremap <buffer> <Leader>mhi2 :<C-u>call <SID>md_insert_heading(2)<CR>
+nnoremap <buffer> <Leader>mhi3 :<C-u>call <SID>md_insert_heading(3)<CR>
+nnoremap <buffer> <Leader>mhi4 :<C-u>call <SID>md_insert_heading(4)<CR>
+nnoremap <buffer> <Leader>mhi5 :<C-u>call <SID>md_insert_heading(5)<CR>
+nnoremap <buffer> <Leader>mhi6 :<C-u>call <SID>md_insert_heading(6)<CR>
 
 " feat: heading unwrapping (normal mode) {{{3
 " s:md_unwrap_heading() {{{4
