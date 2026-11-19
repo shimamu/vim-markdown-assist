@@ -426,20 +426,20 @@ endfunction
 nnoremap <buffer> <Leader>mlf :<C-u>call <SID>md_format_bullet_list_items()<CR>
 xnoremap <buffer> <Leader>mlf :<C-u>'<,'>call <SID>md_format_bullet_list_items()<CR>
 
-" feat: ordered list continuation {{{3
-" s:md_continue_list() {{{4
-function! s:md_continue_list(lnum, offset) abort
-  let l:result = s:continue_ordered_list(a:lnum, a:offset)
-  let l:result .= s:continue_task_list(a:lnum)
+" feat: ordered list items continuation {{{3
+" s:md_continue_list_item() {{{4
+function! s:md_continue_list_item(lnum, offset) abort
+  let l:result = s:continue_ordered_list_item(a:lnum, a:offset)
+  let l:result .= s:continue_task_list_item(a:lnum)
   return l:result
 endfunction
 
-inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>md_continue_list(line('.') - 1, 1)<CR>"
-nnoremap <buffer> <expr> o "o\<C-r>=<SID>md_continue_list(line('.') - 1, 1)<CR>"
-nnoremap <buffer> <expr> O "O\<C-r>=<SID>md_continue_list(line('.') + 1, -1)<CR>"
+inoremap <buffer> <expr> <CR> "\<CR>\<C-r>=<SID>md_continue_list_item(line('.') - 1, 1)<CR>"
+nnoremap <buffer> <expr> o "o\<C-r>=<SID>md_continue_list_item(line('.') - 1, 1)<CR>"
+nnoremap <buffer> <expr> O "O\<C-r>=<SID>md_continue_list_item(line('.') + 1, -1)<CR>"
 
-" s:continue_ordered_list() {{{4
-function! s:continue_ordered_list(lnum, offset) abort
+" s:continue_ordered_list_item() {{{4
+function! s:continue_ordered_list_item(lnum, offset) abort
   let l:line = getline(a:lnum)
   let l:match = matchlist(l:line, '^\s*\(\d\+\)\([.)]\)\s\+')
 
@@ -450,7 +450,7 @@ function! s:continue_ordered_list(lnum, offset) abort
   return max([1, str2nr(l:match[1]) + a:offset]) . l:match[2] . ' '
 endfunction
 
-" feat: ordered list insertion (normal/visual mode) {{{3
+" feat: ordered list items insertion (normal/visual mode) {{{3
 " s:md_set_ordered_list() {{{4
 function! s:md_set_ordered_list() range abort
   for l:lnum in range(a:firstline, a:lastline)
@@ -811,9 +811,9 @@ function! s:format_text_wrapping(start_lnum, end_lnum) abort
 endfunction
 
 " 5.3 Task list items (extension) {{{2
-" feat: task list continuation {{{3
-" s:continue_task_list() {{{4
-function! s:continue_task_list(lnum) abort
+" feat: task list item continuation {{{3
+" s:continue_task_list_item() {{{4
+function! s:continue_task_list_item(lnum) abort
   let l:line = getline(a:lnum)
 
   if l:line !~# '^\s*-\s\+\[[ x]\]'
