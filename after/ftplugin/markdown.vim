@@ -451,8 +451,8 @@ function! s:continue_ordered_list_item(lnum, offset) abort
 endfunction
 
 " feat: ordered list items insertion (normal/visual mode) {{{3
-" s:md_set_ordered_list() {{{4
-function! s:md_set_ordered_list() range abort
+" s:md_insert_ordered_list_items() {{{4
+function! s:md_insert_ordered_list_items() range abort
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
 
@@ -468,14 +468,14 @@ function! s:md_set_ordered_list() range abort
     call setline(l:lnum, l:indent . '1. ' . l:text)
   endfor
 
-  call s:renumber_ordered_list(1, a:firstline, a:lastline)
+  call s:renumber_ordered_list_items(1, a:firstline, a:lastline)
 endfunction
 
-nnoremap <buffer> <Leader>moi :<C-u>call <SID>md_set_ordered_list()<CR>
-xnoremap <buffer> <Leader>moi :<C-u>'<,'>call <SID>md_set_ordered_list()<CR>
+nnoremap <buffer> <Leader>moi :<C-u>call <SID>md_insert_ordered_list_items()<CR>
+xnoremap <buffer> <Leader>moi :<C-u>'<,'>call <SID>md_insert_ordered_list_items()<CR>
 
-" s:renumber_ordered_list() {{{4
-function! s:renumber_ordered_list(start_from_one, start_lnum, end_lnum) abort
+" s:renumber_ordered_list_items() {{{4
+function! s:renumber_ordered_list_items(start_from_one, start_lnum, end_lnum) abort
   let l:counters = {}
   let l:delimiters = {}
 
@@ -517,7 +517,7 @@ endfunction
 " feat: ordered list renumbering (visual mode) {{{3
 " s:md_renumber_ordered_list() {{{4
 function! s:md_renumber_ordered_list(start_from_one) range abort
-  call s:renumber_ordered_list(
+  call s:renumber_ordered_list_items(
         \ a:start_from_one, a:firstline, a:lastline
         \ )
 endfunction
