@@ -884,14 +884,21 @@ xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_state()<C
 " feat: code span wrapping (normal/visual mode) {{{3
 " NOTE: Visual mode uses s:md_wrap_code_visual() in 4.5 Fenced code blocks.
 " constants {{{4
-const s:CODE_SPAN = "`"
+const s:MD_CODE_SPAN = "`"
 
-" s:md_wrap_code() {{{4
-function! s:md_wrap_code(type) abort
-  call s:wrap_text(a:type, s:CODE_SPAN)
+" s:md_wrap_code_span() {{{4
+function! s:md_wrap_code_span(type) abort
+  call s:wrap_text(a:type, s:MD_CODE_SPAN)
 endfunction
 
-nnoremap <buffer> <Leader>mci :<C-u>set operatorfunc=<SID>md_wrap_code<CR>g@
+nnoremap <buffer> <Leader>mcw :<C-u>set operatorfunc=<SID>md_wrap_code_span<CR>g@
+
+" s:md_wrap_code_span_visual() {{{4
+function! s:md_wrap_code_span_visual() abort
+  call s:wrap_text_visual(s:MD_CODE_SPAN)
+endfunction
+
+xnoremap <buffer> <Leader>mcw :<C-u>call <SID>md_wrap_code_span_visual()<CR>
 
 " s:wrap_text() {{{4
 function! s:wrap_text(type, wrapper) abort
@@ -1019,12 +1026,12 @@ function! s:wrap_text_visual(wrapper) abort
 endfunction
 
 " feat: code span unwrapping (normal mode) {{{3
-" s:md_unwrap_code() {{{4
-function! s:md_unwrap_code() abort
-  call s:unwrap_wrappers([s:CODE_SPAN])
+" s:md_unwrap_code_span() {{{4
+function! s:md_unwrap_code_span() abort
+  call s:unwrap_wrappers([s:MD_CODE_SPAN])
 endfunction
 
-nnoremap <buffer> <Leader>mcu :<C-u>call <SID>md_unwrap_code()<CR>
+nnoremap <buffer> <Leader>mcu :<C-u>call <SID>md_unwrap_code_span()<CR>
 
 " s:unwrap_wrappers() {{{4
 function! s:unwrap_wrappers(wrappers) abort
@@ -1123,7 +1130,7 @@ nnoremap <buffer> <Leader>miu :<C-u>call <SID>md_unwrap_italic()<CR>
 const s:MD_UNWRAP_WRAPPERS = [
       \ s:EMPHASIS_BOLD,
       \ s:EMPHASIS_ITALIC,
-      \ s:CODE_SPAN,
+      \ s:MD_CODE_SPAN,
       \ ]
 
 " s:md_unwrap() {{{4
