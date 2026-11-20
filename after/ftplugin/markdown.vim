@@ -502,9 +502,10 @@ function! s:renumber_ordered_list_items(start_from_one, start_lnum, end_lnum) ab
       if has_key(l:ordered_list_counters, l:indent_key)
         let l:ordered_list_counters[l:indent_key] += 1
       else
-        let l:ordered_list_counters[l:indent_key] = a:start_from_one
+        let l:ordered_list_counters[l:indent_key] =
+              \ l:lnum == a:start_lnum && a:start_from_one
               \ ? 1
-              \ : str2nr(l:number)
+              \ : (l:indent > 0 ? 1 : str2nr(l:number))
       endif
 
       call setline(
