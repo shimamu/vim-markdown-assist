@@ -476,54 +476,56 @@ xnoremap <buffer> <Leader>moi :<C-u>'<,'>call <SID>md_insert_ordered_list_items(
 
 " s:renumber_ordered_list_items() {{{4
 function! s:renumber_ordered_list_items(start_from_one, start_lnum, end_lnum) abort
-  let l:counters = {}
-  let l:delimiters = {}
+  let l:ordered_list_counters = {}
 
   for l:lnum in range(a:start_lnum, a:end_lnum)
     let l:line = getline(l:lnum)
     let l:match = matchlist(l:line, '^\(\s*\)\(\d\+\)\([.)]\)\s*')
 
     if !empty(l:match)
+      let l:indent_str = l:match[1]
+      let l:number = l:match[2]
+      let l:delimiter = l:match[3]
+      let l:list_marker = l:match[0]
+
       let l:indent = indent(l:lnum)
       let l:indent_key = string(l:indent)
 
-      " Reset counters and delimiters for deeper indentation levels.
-      for l:existing_indent_key in keys(l:counters)
+      " Reset counters for deeper indentation levels.
+      for l:existing_indent_key in keys(l:ordered_list_counters)
         if str2nr(l:existing_indent_key) > l:indent
-          call remove(l:counters, l:existing_indent_key)
-          call remove(l:delimiters, l:existing_indent_key)
+          call remove(l:ordered_list_counters, l:existing_indent_key)
         endif
       endfor
 
-      " Initialize the counter and delimiter for the current level.
-      if has_key(l:counters, l:indent_key)
-        let l:counters[l:indent_key] += 1
+      " Initialize or increment the counter for the current level.
+      if has_key(l:ordered_list_counters, l:indent_key)
+        let l:ordered_list_counters[l:indent_key] += 1
       else
-        let l:counters[l:indent_key] = a:start_from_one
+        let l:ordered_list_counters[l:indent_key] = a:start_from_one
               \ ? 1
-              \ : str2nr(l:match[2])
-        let l:delimiters[l:indent_key] = l:match[3]
+              \ : str2nr(l:number)
       endif
 
       call setline(
             \ l:lnum,
-            \ l:match[1] . l:counters[l:indent_key] . l:delimiters[l:indent_key] . ' ' .
-            \ strpart(l:line, strlen(l:match[0]))
+            \ l:indent_str . l:ordered_list_counters[l:indent_key] . l:delimiter . ' ' .
+            \ strpart(l:line, strlen(l:list_marker))
             \ )
     endif
   endfor
 endfunction
 
-" feat: ordered list renumbering (visual mode) {{{3
-" s:md_renumber_ordered_list() {{{4
-function! s:md_renumber_ordered_list(start_from_one) range abort
+" feat: ordered list items renumbering (visual mode) {{{3
+" s:md_renumber_ordered_list_items() {{{4
+function! s:md_renumber_ordered_list_items(start_from_one) range abort
   call s:renumber_ordered_list_items(
         \ a:start_from_one, a:firstline, a:lastline
         \ )
 endfunction
 
-xnoremap <buffer> <Leader>mof :<C-u>'<,'>call <SID>md_renumber_ordered_list(0)<CR>
-xnoremap <buffer> <Leader>moF :<C-u>'<,'>call <SID>md_renumber_ordered_list(1)<CR>
+xnoremap <buffer> <Leader>mon :<C-u>'<,'>call <SID>md_renumber_ordered_list_items(0)<CR>
+xnoremap <buffer> <Leader>moN :<C-u>'<,'>call <SID>md_renumber_ordered_list_items(1)<CR>
 
 " feat: line wrapping {{{3
 " s:md_format_line_wrapping() {{{4
