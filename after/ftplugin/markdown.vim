@@ -516,6 +516,54 @@ function! s:renumber_ordered_list_items(start_from_one, start_lnum, end_lnum) ab
   endfor
 endfunction
 
+" feat: ordered list items formatting (visual mode) {{{3
+" s:md_format_ordered_list_delimiters() {{{4
+function! s:md_format_ordered_list_delimiters(force_dot) range abort
+  let l:group_delimiters = {}
+
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+    let l:match = matchlist(l:line, '^\(\s*\)\(\d\+\)\([.)]\)\s*')
+
+    if !empty(l:match)
+      let l:indent_str = l:match[1]
+      let l:number = l:match[2]
+      let l:delimiter = l:match[3]
+      let l:list_marker = l:match[0]
+
+      let l:indent = indent(l:lnum)
+      let l:indent_key = string(l:indent)
+
+      " Reset delimiters for deeper indentation levels.
+      for l:existing_indent_key in keys(l:group_delimiters)
+        if str2nr(l:existing_indent_key) > l:indent
+          call remove(l:group_delimiters, l:existing_indent_key)
+        endif
+      endfor
+
+      " Initialize the delimiter for the current group.
+      if !has_key(l:group_delimiters, l:indent_key)
+        let l:group_delimiters[l:indent_key] = a:force_dot
+              \ ? '.'
+              \ : l:delimiter
+      endif
+
+      let l:new_delimiter = l:group_delimiters[l:indent_key]
+
+      if l:delimiter !=# l:new_delimiter
+        call setline(
+              \ l:lnum,
+              \ l:indent_str . l:number . l:new_delimiter . ' ' .
+              \ strpart(l:line, strlen(l:list_marker))
+              \ )
+      endif
+    endif
+  endfor
+endfunction
+
+xnoremap <buffer> <Leader>mof :call <SID>md_format_ordered_list_delimiters(0)<CR>
+xnoremap <buffer> <Leader>moF :call <SID>md_format_ordered_list_delimiters(1)<CR>
+
 " feat: ordered list items renumbering (visual mode) {{{3
 " s:md_renumber_ordered_list_items() {{{4
 function! s:md_renumber_ordered_list_items(start_from_one) range abort
