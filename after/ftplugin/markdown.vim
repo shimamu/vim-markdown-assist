@@ -1077,18 +1077,18 @@ endfunction
 " 6.4 Emphasis and strong emphasis {{{2
 " feat: bold text wrapping (normal/visual mode) {{{3
 " constants {{{4
-const s:EMPHASIS_BOLD = "**"
+const s:MD_EMPHASIS_BOLD = "**"
 
 " s:md_wrap_bold() {{{4
 function! s:md_wrap_bold(type) abort
-  call s:wrap_text(a:type, s:EMPHASIS_BOLD)
+  call s:wrap_text(a:type, s:MD_EMPHASIS_BOLD)
 endfunction
 
 nnoremap <buffer> <Leader>mbi :<C-u>set operatorfunc=<SID>md_wrap_bold<CR>g@
 
 " s:md_wrap_bold_visual() {{{4
 function! s:md_wrap_bold_visual() abort
-  call s:wrap_text_visual(s:EMPHASIS_BOLD)
+  call s:wrap_text_visual(s:MD_EMPHASIS_BOLD)
 endfunction
 
 xnoremap <buffer> <Leader>mbi :<C-u>call <SID>md_wrap_bold_visual()<CR>
@@ -1096,25 +1096,25 @@ xnoremap <buffer> <Leader>mbi :<C-u>call <SID>md_wrap_bold_visual()<CR>
 " feat: bold text unwrapping (normal mode) {{{3
 " s:md_unwrap_bold() {{{4
 function! s:md_unwrap_bold() abort
-  call s:unwrap_wrappers([s:EMPHASIS_BOLD])
+  call s:unwrap_wrappers([s:MD_EMPHASIS_BOLD])
 endfunction
 
 nnoremap <buffer> <Leader>mbu :<C-u>call <SID>md_unwrap_bold()<CR>
 
 " feat: italic text wrapping (normal/visual mode) {{{3
 " constants {{{4
-const s:EMPHASIS_ITALIC = "_"
+const s:MD_EMPHASIS_ITALIC = "_"
 
 " s:md_wrap_italic() {{{4
 function! s:md_wrap_italic(type) abort
-  call s:wrap_text(a:type, s:EMPHASIS_ITALIC)
+  call s:wrap_text(a:type, s:MD_EMPHASIS_ITALIC)
 endfunction
 
 nnoremap <buffer> <Leader>mii :<C-u>set operatorfunc=<SID>md_wrap_italic<CR>g@
 
 " s:md_wrap_italic_visual() {{{4
 function! s:md_wrap_italic_visual() abort
-  call s:wrap_text_visual(s:EMPHASIS_ITALIC)
+  call s:wrap_text_visual(s:MD_EMPHASIS_ITALIC)
 endfunction
 
 xnoremap <buffer> <Leader>mii :<C-u>call <SID>md_wrap_italic_visual()<CR>
@@ -1122,7 +1122,7 @@ xnoremap <buffer> <Leader>mii :<C-u>call <SID>md_wrap_italic_visual()<CR>
 " feat: italic text unwrapping (normal mode) {{{3
 " s:md_unwrap_italic() {{{4
 function! s:md_unwrap_italic() abort
-  call s:unwrap_wrappers([s:EMPHASIS_ITALIC])
+  call s:unwrap_wrappers([s:MD_EMPHASIS_ITALIC])
 endfunction
 
 nnoremap <buffer> <Leader>miu :<C-u>call <SID>md_unwrap_italic()<CR>
@@ -1130,8 +1130,8 @@ nnoremap <buffer> <Leader>miu :<C-u>call <SID>md_unwrap_italic()<CR>
 " feat: nearest Markdown wrapper unwrapping (normal mode) {{{3
 " constants {{{4
 const s:MD_UNWRAP_WRAPPERS = [
-      \ s:EMPHASIS_BOLD,
-      \ s:EMPHASIS_ITALIC,
+      \ s:MD_EMPHASIS_BOLD,
+      \ s:MD_EMPHASIS_ITALIC,
       \ s:MD_CODE_SPAN,
       \ ]
 
