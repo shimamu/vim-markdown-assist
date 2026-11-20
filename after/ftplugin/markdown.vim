@@ -391,23 +391,55 @@ setlocal comments+=b:*,b:-,b:+
 
 " feat: bullet list items insertion (normal/visual mode) {{{3
 " s:md_insert_bullet_list_items() {{{4
-function! s:md_insert_bullet_list_items() range abort
+function! s:md_insert_bullet_list_items(visual_mode) range abort
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
 
+    " Skip lines that already have a list marker.
     if l:line =~# '^\s*[-*+]\s\+'
           \ || l:line =~# '^\s*\d\+[.)]\s\+'
       continue
     endif
 
+    " Skip indented lines in visual mode.
+    if a:visual_mode && l:line =~# '^\s'
+      continue
+    endif
+
+    let l:indent = a:visual_mode
+          \ ? matchstr(l:line, '^\s*')
+          \ : s:get_previous_list_item_indent(l:lnum)
+
     call setline(
           \ l:lnum,
-          \ substitute(l:line, '^\(\s*\)', '\1- ', ''))
+          \ l:indent . '- ' . substitute(l:line, '^\s*', '', ''))
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_insert_bullet_list_items()<CR>
-xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items()<CR>
+nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_insert_bullet_list_items(0)<CR>
+xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items(1)<CR>
+
+" s:get_previous_list_item_indent() {{{4
+function! s:get_previous_list_item_indent(lnum) abort
+  let l:target_indent = indent(a:lnum)
+
+  for l:lnum in reverse(range(1, a:lnum - 1))
+    let l:line = getline(l:lnum)
+
+    if l:line =~# '^\s*$'
+      break
+    endif
+
+    if l:line =~# '^\s*[-*+]\s\+'
+          \ || l:line =~# '^\s*\d\+[.)]\s\+'
+      if indent(l:lnum) < l:target_indent
+        return matchstr(l:line, '^\s*')
+      endif
+    endif
+  endfor
+
+  return matchstr(getline(a:lnum), '^\s*')
+endfunction
 
 " feat: bullet list items formatting (normal/visual mode) {{{3
 " s:md_format_bullet_list_items() {{{4
