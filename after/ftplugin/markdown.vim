@@ -1051,24 +1051,39 @@ endfunction
 nnoremap <buffer> <Leader>mkt :<C-u>call <SID>md_toggle_task_list_items_state()<CR>
 xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_items_state()<CR>
 
-" feat: task list items deletion (normal/visual mode) {{{3
-" s:md_delete_task_list_items() {{{4
-function! s:md_delete_task_list_items() range abort
-  for l:lnum in range(a:firstline, a:lastline)
+" feat: task list items unwrapping (normal/visual mode) {{{3
+" s:md_unwrap_task_list_items() {{{4
+function! s:md_unwrap_task_list_items() range abort
+  call s:remove_task_list_markers(0, a:firstline, a:lastline)
+endfunction
+
+nnoremap <buffer> <Leader>mku :<C-u>call <SID>md_unwrap_task_list_items()<CR>
+xnoremap <buffer> <Leader>mku :<C-u>'<,'>call <SID>md_unwrap_task_list_items()<CR>
+
+" s:remove_task_list_markers() {{{4
+function! s:remove_task_list_markers(delete_bullet, start_lnum, end_lnum) abort
+  for l:lnum in range(a:start_lnum, a:end_lnum)
     let l:line = getline(l:lnum)
     let l:match = matchlist(
           \ l:line,
-          \ '^\(\s*\)[-*+]\s\+\[[ xX]\]\s*')
+          \ '^\(\s*\)\([-*+]\s\+\)\(\[[ xX]\]\s\+\)')
 
     if empty(l:match)
       continue
     endif
 
     let l:indent_str = l:match[1]
+    let l:bullet = a:delete_bullet ? '' : l:match[2]
     let l:text = strpart(l:line, strlen(l:match[0]))
 
-    call setline(l:lnum, l:indent_str . l:text)
+    call setline(l:lnum, l:indent_str . l:bullet . l:text)
   endfor
+endfunction
+
+" feat: task list items deletion (normal/visual mode) {{{3
+" s:md_delete_task_list_items() {{{4
+function! s:md_delete_task_list_items() range abort
+  call s:remove_task_list_markers(1, a:firstline, a:lastline)
 endfunction
 
 nnoremap <buffer> <Leader>mkd :<C-u>call <SID>md_delete_task_list_items()<CR>
