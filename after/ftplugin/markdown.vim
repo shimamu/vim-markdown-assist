@@ -446,12 +446,24 @@ function! s:insert_list_items(start_lnum, end_lnum, marker, visual_mode, ignore_
       let l:indent = s:get_previous_list_item_indent(l:lnum)
     endif
 
-    " Skip existing list markers.
-    if l:line =~# '^\s*\%([-*+]\s\+\|\d\+[.)]\s*\)'
-      continue
+    if a:marker ==# '- [ ] '
+      " Skip existing task list items and ordered list items.
+      if l:line =~# '^\s*[-*+]\s\+\[[ xX]\]\%(\s\|$\)'
+            \ || l:line =~# '^\s*\d\+[.)]\%(\s\|$\)'
+        continue
+      endif
+
+      " Remove leading indentation and an existing bullet list marker.
+      let l:text = substitute(l:line, '^\s*\%([-*+]\s\+\)\?', '', '')
+    else
+      " Skip existing list markers.
+      if l:line =~# '^\s*\%([-*+]\s\+\|\d\+[.)]\s*\)'
+        continue
+      endif
+
+      let l:text = substitute(l:line, '^\s*', '', '')
     endif
 
-    let l:text = substitute(l:line, '^\s*', '', '')
     call setline(l:lnum, l:indent . a:marker . l:text)
   endfor
 endfunction
@@ -925,7 +937,7 @@ function! s:format_text_wrapping(start_lnum, end_lnum) abort
 endfunction
 
 " 5.3 Task list items (extension) {{{2
-" feat: task list item continuation {{{3
+" feat: task list items continuation {{{3
 " s:continue_task_list_item() {{{4
 function! s:continue_task_list_item(lnum) abort
   let l:line = getline(a:lnum)
@@ -936,6 +948,21 @@ function! s:continue_task_list_item(lnum) abort
 
   return '[ ] '
 endfunction
+
+" feat: task list items insertion (normal/visual mode) {{{3
+"s:md_insert_task_list_items() {{{4
+function! s:md_insert_task_list_items(visual_mode, ignore_indent) range abort
+  call s:insert_list_items(
+        \ a:firstline,
+        \ a:lastline,
+        \ '- [ ] ',
+        \ a:visual_mode,
+        \ a:ignore_indent)
+endfunction
+
+nnoremap <buffer> <Leader>mki :<C-u>call <SID>md_insert_task_list_items(0, 0)<CR>
+xnoremap <buffer> <Leader>mki :<C-u>'<,'>call <SID>md_insert_task_list_items(1, 0)<CR>
+xnoremap <buffer> <Leader>mkI :<C-u>'<,'>call <SID>md_insert_task_list_items(1, 1)<CR>
 
 " feat: task list state setting and creation (normal/visual mode) {{{3
 " s:md_set_task_list_state() {{{4
