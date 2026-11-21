@@ -404,23 +404,47 @@ xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items(1
 
 " s:insert_list_items() {{{4
 function! s:insert_list_items(start_lnum, end_lnum, marker, visual_mode) abort
+  let l:base_indent = -1
+  let l:base_indent_str = ''
+
   for l:lnum in range(a:start_lnum, a:end_lnum)
     let l:line = getline(l:lnum)
 
-    " Skip blank lines and existing list markers.
+    " Skip blank lines.
     if l:line =~# '^\s*$'
-          \ || l:line =~# '^\s*\%([-*+]\s\+\|\d\+[.)]\s*\)'
       continue
     endif
 
-    " Skip indented lines in visual mode.
-    if a:visual_mode && l:line =~# '^\s'
+    if a:visual_mode
+      " Get the indentation of the first non-blank line.
+      if l:base_indent < 0
+        let l:base_indent = indent(l:lnum)
+        let l:base_indent_str = matchstr(l:line, '^\s*')
+      endif
+
+      let l:indent = indent(l:lnum)
+
+      " Stop when reaching a shallower indentation level.
+      if l:indent < l:base_indent
+        break
+      endif
+
+      " Skip lines with deeper indentation.
+      if l:indent > l:base_indent
+        continue
+      endif
+
+      let l:indent = l:base_indent_str
+    else
+      let l:indent = s:get_previous_list_item_indent(l:lnum)
+    endif
+
+    " Skip existing list markers.
+    if l:line =~# '^\s*\%([-*+]\s\+\|\d\+[.)]\s*\)'
       continue
     endif
 
-    let l:indent = s:get_previous_list_item_indent(l:lnum)
     let l:text = substitute(l:line, '^\s*', '', '')
-
     call setline(l:lnum, l:indent . a:marker . l:text)
   endfor
 endfunction
