@@ -368,16 +368,23 @@ function! s:md_format_block_quote() range abort
       continue
     endif
 
-    let l:match = matchlist(l:line, '^ \{0,3}\([> ]\+\)\(.*\)$')
+    let l:match = matchlist(l:line, '^ \{0,3}\(\(>[ \t]*\)*>[ \t]\?\)\(.*\)$')
 
-    if empty(l:match) || l:match[1] !~# '>'
+    if empty(l:match)
       continue
     endif
 
-    let l:count = count(l:match[1], '>')
-    let l:markers = join(repeat(['>'], l:count), ' ')
+    let l:quote_markers = l:match[1]
+    let l:text = l:match[3]
 
-    call setline(l:lnum, l:markers . ' ' . l:match[2])
+    if l:quote_markers !~# '>'
+      continue
+    endif
+
+    let l:quote_count = count(l:quote_markers, '>')
+    let l:markers = join(repeat(['>'], l:quote_count), ' ')
+
+    call setline(l:lnum, l:markers . ' ' . l:text)
   endfor
 endfunction
 
