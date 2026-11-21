@@ -391,19 +391,22 @@ setlocal comments+=b:*,b:-,b:+
 
 " feat: bullet list items insertion (normal/visual mode) {{{3
 " s:md_insert_bullet_list_items() {{{4
-function! s:md_insert_bullet_list_items(visual_mode) range abort
+function! s:md_insert_bullet_list_items(visual_mode, ignore_indent) range abort
   call s:insert_list_items(
         \ a:firstline,
         \ a:lastline,
         \ '- ',
-        \ a:visual_mode)
+        \ a:visual_mode,
+        \ a:ignore_indent)
 endfunction
 
-nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_insert_bullet_list_items(0)<CR>
-xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items(1)<CR>
+nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_insert_bullet_list_items(0, 0)<CR>
+xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items(1, 0)<CR>
+
+xnoremap <buffer> <Leader>mlI :<C-u>'<,'>call <SID>md_insert_bullet_list_items(1, 1)<CR>
 
 " s:insert_list_items() {{{4
-function! s:insert_list_items(start_lnum, end_lnum, marker, visual_mode) abort
+function! s:insert_list_items(start_lnum, end_lnum, marker, visual_mode, ignore_indent) abort
   let l:base_indent = -1
   let l:base_indent_str = ''
 
@@ -416,25 +419,29 @@ function! s:insert_list_items(start_lnum, end_lnum, marker, visual_mode) abort
     endif
 
     if a:visual_mode
-      " Get the indentation of the first non-blank line.
-      if l:base_indent < 0
-        let l:base_indent = indent(l:lnum)
-        let l:base_indent_str = matchstr(l:line, '^\s*')
+      if a:ignore_indent
+        let l:indent = matchstr(l:line, '^\s*')
+      else
+        " Get the indentation of the first non-blank line.
+        if l:base_indent < 0
+          let l:base_indent = indent(l:lnum)
+          let l:base_indent_str = matchstr(l:line, '^\s*')
+        endif
+
+        let l:indent = indent(l:lnum)
+
+        " Stop when reaching a shallower indentation level.
+        if l:indent < l:base_indent
+          break
+        endif
+
+        " Skip lines with deeper indentation.
+        if l:indent > l:base_indent
+          continue
+        endif
+
+        let l:indent = l:base_indent_str
       endif
-
-      let l:indent = indent(l:lnum)
-
-      " Stop when reaching a shallower indentation level.
-      if l:indent < l:base_indent
-        break
-      endif
-
-      " Skip lines with deeper indentation.
-      if l:indent > l:base_indent
-        continue
-      endif
-
-      let l:indent = l:base_indent_str
     else
       let l:indent = s:get_previous_list_item_indent(l:lnum)
     endif
@@ -514,18 +521,21 @@ endfunction
 
 " feat: ordered list items insertion (normal/visual mode) {{{3
 " s:md_insert_ordered_list_items() {{{4
-function! s:md_insert_ordered_list_items(visual_mode) range abort
+function! s:md_insert_ordered_list_items(visual_mode, ignore_indent) range abort
   call s:insert_list_items(
         \ a:firstline,
         \ a:lastline,
         \ '1. ',
-        \ a:visual_mode)
+        \ a:visual_mode,
+        \ a:ignore_indent)
 
   call s:renumber_ordered_list_items(1, a:firstline, a:lastline)
 endfunction
 
-nnoremap <buffer> <Leader>moi :<C-u>call <SID>md_insert_ordered_list_items(0)<CR>
-xnoremap <buffer> <Leader>moi :<C-u>'<,'>call <SID>md_insert_ordered_list_items(1)<CR>
+nnoremap <buffer> <Leader>moi :<C-u>call <SID>md_insert_ordered_list_items(0, 0)<CR>
+
+xnoremap <buffer> <Leader>moi :<C-u>'<,'>call <SID>md_insert_ordered_list_items(1, 0)<CR>
+xnoremap <buffer> <Leader>moI :<C-u>'<,'>call <SID>md_insert_ordered_list_items(1, 1)<CR>
 
 " s:renumber_ordered_list_items() {{{4
 function! s:renumber_ordered_list_items(start_from_one, start_lnum, end_lnum) abort
