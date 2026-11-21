@@ -596,7 +596,7 @@ function! s:renumber_ordered_list_items(start_from_one, start_lnum, end_lnum) ab
   endfor
 endfunction
 
-" feat: ordered list items formatting (visual mode) {{{3
+" feat: ordered list items formatting (normal/visual mode) {{{3
 " s:md_format_ordered_list_delimiters() {{{4
 function! s:md_format_ordered_list_delimiters(force_dot) range abort
   let l:group_delimiters = {}
@@ -640,6 +640,8 @@ function! s:md_format_ordered_list_delimiters(force_dot) range abort
     endif
   endfor
 endfunction
+
+nnoremap <buffer> <Leader>moF :<C-u>call <SID>md_format_ordered_list_delimiters(1)<CR>
 
 xnoremap <buffer> <Leader>mof :call <SID>md_format_ordered_list_delimiters(0)<CR>
 xnoremap <buffer> <Leader>moF :call <SID>md_format_ordered_list_delimiters(1)<CR>
