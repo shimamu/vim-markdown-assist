@@ -355,8 +355,8 @@ function! s:md_insert_block_quote() range abort
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mqi :<C-u>call <SID>insert_block_quote()<CR>
-xnoremap <buffer> <Leader>mqi :call <SID>insert_block_quote()<CR>
+nnoremap <buffer> <Leader>mqi :<C-u>call <SID>md_insert_block_quote()<CR>
+xnoremap <buffer> <Leader>mqi :call <SID>md_insert_block_quote()<CR>
 
 " feat: block quote formatting (normal/visual mode) {{{3
 " s:md_format_block_quote() {{{4
