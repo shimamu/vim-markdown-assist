@@ -598,6 +598,37 @@ function! s:md_update_indent_group_marker(indent_group_markers, indent, marker) 
   return a:indent_group_markers
 endfunction
 
+" feat: bullet list items deletion (normal/visual mode) {{{3
+" s:md_delete_bullet_list_items() {{{4
+function! s:md_delete_bullet_list_items() range abort
+  call s:remove_bullet_list_markers(a:firstline, a:lastline)
+endfunction
+
+nnoremap <buffer> <Leader>mld :<C-u>call <SID>md_delete_bullet_list_items()<CR>
+xnoremap <buffer> <Leader>mld :<C-u>'<,'>call <SID>md_delete_bullet_list_items()<CR>
+
+" s:remove_bullet_list_markers() {{{4
+function! s:remove_bullet_list_markers(start_lnum, end_lnum) abort
+  for l:lnum in range(a:start_lnum, a:end_lnum)
+    let l:line = getline(l:lnum)
+    let l:match = matchlist(l:line, '^\(\s*\)[-*+]\s\+')
+
+    if empty(l:match)
+      continue
+    endif
+
+    let l:text = strpart(l:line, strlen(l:match[0]))
+
+    if l:text =~# '^\[[ xX]\]\%([ \t]\|$\)'
+      continue
+    endif
+
+    let l:indent_str = l:match[1]
+
+    call setline(l:lnum, l:indent_str . l:text)
+  endfor
+endfunction
+
 " feat: ordered list items continuation {{{3
 " s:md_continue_list_item() {{{4
 function! s:md_continue_list_item(lnum, offset) abort
