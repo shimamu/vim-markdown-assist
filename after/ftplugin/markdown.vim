@@ -1051,6 +1051,29 @@ endfunction
 nnoremap <buffer> <Leader>mkt :<C-u>call <SID>md_toggle_task_list_items_state()<CR>
 xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_items_state()<CR>
 
+" feat: task list items deletion (normal/visual mode) {{{3
+" s:md_delete_task_list_items() {{{4
+function! s:md_delete_task_list_items() range abort
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+    let l:match = matchlist(
+          \ l:line,
+          \ '^\(\s*\)[-*+]\s\+\[[ xX]\]\s*')
+
+    if empty(l:match)
+      continue
+    endif
+
+    let l:indent_str = l:match[1]
+    let l:text = strpart(l:line, strlen(l:match[0]))
+
+    call setline(l:lnum, l:indent_str . l:text)
+  endfor
+endfunction
+
+nnoremap <buffer> <Leader>mkd :<C-u>call <SID>md_delete_task_list_items()<CR>
+xnoremap <buffer> <Leader>mkd :<C-u>'<,'>call <SID>md_delete_task_list_items()<CR>
+
 " GFM Spec 6. Inlines {{{1
 " 6.3 Code spans {{{2
 " feat: code span wrapping (normal/visual mode) {{{3
