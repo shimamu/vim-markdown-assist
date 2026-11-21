@@ -443,7 +443,11 @@ function! s:insert_list_items(start_lnum, end_lnum, marker, visual_mode, ignore_
         let l:indent = l:base_indent_str
       endif
     else
-      let l:indent = s:get_previous_list_item_indent(l:lnum)
+      let l:indent = matchstr(l:line, '^\s*')
+
+      if l:lnum > 1 && indent(l:lnum) <= indent(l:lnum - 1)
+        let l:indent = s:get_previous_list_item_indent(l:lnum)
+      endif
     endif
 
     if a:marker ==# '- [ ] '
