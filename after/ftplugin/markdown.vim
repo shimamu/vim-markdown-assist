@@ -495,21 +495,62 @@ function! s:get_previous_list_item_indent(lnum) abort
 endfunction
 
 " feat: bullet list items formatting (normal/visual mode) {{{3
-" s:md_format_bullet_list_items() {{{4
-function! s:md_format_bullet_list_items() range abort
+" s:md_format_bullet_list_markers() {{{4
+function! s:md_format_bullet_list_markers(force_dash) range abort
+  let l:indent_group_markers = {}
+
   for l:lnum in range(a:firstline, a:lastline)
-    call setline(
-          \ l:lnum,
-          \ substitute(
-          \   getline(l:lnum),
-          \   '^\(\s*\)[*+]\(\s\+\)',
-          \   '\1-\2',
-          \   ''))
+    let l:line = getline(l:lnum)
+    let l:match = matchlist(l:line, '^\(\s*\)\([*+-]\)\s\+')
+
+    if !empty(l:match)
+      let l:marker = l:match[2]
+      let l:indent = indent(l:lnum)
+      let l:indent_key = string(l:indent)
+
+      let l:indent_group_markers = s:md_update_indent_group_marker(
+            \ l:indent_group_markers,
+            \ l:indent,
+            \ a:force_dash ? '-' : l:marker)
+
+      let l:new_marker = l:indent_group_markers[l:indent_key]
+
+      if l:marker !=# l:new_marker
+        call setline(
+              \ l:lnum,
+              \ substitute(
+              \   l:line,
+              \   '^\(\s*\)[*+-]',
+              \   '\1' . l:new_marker,
+              \   ''))
+      endif
+    endif
   endfor
 endfunction
 
-nnoremap <buffer> <Leader>mlf :<C-u>call <SID>md_format_bullet_list_items()<CR>
-xnoremap <buffer> <Leader>mlf :<C-u>'<,'>call <SID>md_format_bullet_list_items()<CR>
+nnoremap <buffer> <Leader>mlF :<C-u>call <SID>md_format_bullet_list_markers(1)<CR>
+
+xnoremap <buffer> <Leader>mlf :<C-u>'<,'>call <SID>md_format_bullet_list_markers(0)<CR>
+xnoremap <buffer> <Leader>mlF :<C-u>'<,'>call <SID>md_format_bullet_list_markers(1)<CR>
+
+"s:md_update_indent_group_marker() {{{4
+function! s:md_update_indent_group_marker(indent_group_markers, indent, marker) abort
+  let l:indent_key = string(a:indent)
+
+  " Reset markers for deeper indentation levels.
+  for l:existing_indent_key in keys(a:indent_group_markers)
+    if str2nr(l:existing_indent_key) > a:indent
+      call remove(a:indent_group_markers, l:existing_indent_key)
+    endif
+  endfor
+
+  " Initialize the marker for the current group.
+  if !has_key(a:indent_group_markers, l:indent_key)
+    let a:indent_group_markers[l:indent_key] = a:marker
+  endif
+
+  return a:indent_group_markers
+endfunction
 
 " feat: ordered list items continuation {{{3
 " s:md_continue_list_item() {{{4
@@ -599,7 +640,7 @@ endfunction
 " feat: ordered list items formatting (normal/visual mode) {{{3
 " s:md_format_ordered_list_delimiters() {{{4
 function! s:md_format_ordered_list_delimiters(force_dot) range abort
-  let l:group_delimiters = {}
+  let l:indent_group_delimiters = {}
 
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
@@ -614,21 +655,12 @@ function! s:md_format_ordered_list_delimiters(force_dot) range abort
       let l:indent = indent(l:lnum)
       let l:indent_key = string(l:indent)
 
-      " Reset delimiters for deeper indentation levels.
-      for l:existing_indent_key in keys(l:group_delimiters)
-        if str2nr(l:existing_indent_key) > l:indent
-          call remove(l:group_delimiters, l:existing_indent_key)
-        endif
-      endfor
+      let l:indent_group_delimiters = s:md_update_indent_group_marker(
+            \ l:indent_group_delimiters,
+            \ l:indent,
+            \ a:force_dot ? '.' : l:delimiter)
 
-      " Initialize the delimiter for the current group.
-      if !has_key(l:group_delimiters, l:indent_key)
-        let l:group_delimiters[l:indent_key] = a:force_dot
-              \ ? '.'
-              \ : l:delimiter
-      endif
-
-      let l:new_delimiter = l:group_delimiters[l:indent_key]
+      let l:new_delimiter = l:indent_group_delimiters[l:indent_key]
 
       if l:delimiter !=# l:new_delimiter
         call setline(
@@ -643,8 +675,8 @@ endfunction
 
 nnoremap <buffer> <Leader>moF :<C-u>call <SID>md_format_ordered_list_delimiters(1)<CR>
 
-xnoremap <buffer> <Leader>mof :call <SID>md_format_ordered_list_delimiters(0)<CR>
-xnoremap <buffer> <Leader>moF :call <SID>md_format_ordered_list_delimiters(1)<CR>
+xnoremap <buffer> <Leader>mof :<C-u>'<,'>call <SID>md_format_ordered_list_delimiters(0)<CR>
+xnoremap <buffer> <Leader>moF :<C-u>'<,'>call <SID>md_format_ordered_list_delimiters(1)<CR>
 
 " feat: ordered list items renumbering (visual mode) {{{3
 " s:md_renumber_ordered_list_items() {{{4
