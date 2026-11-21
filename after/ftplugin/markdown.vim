@@ -384,6 +384,45 @@ endfunction
 nnoremap <buffer> <Leader>mqf :<C-u>call <SID>md_format_block_quote()<CR>
 xnoremap <buffer> <Leader>mqf :<C-u>'<,'>call <SID>md_format_block_quote()<CR>
 
+" feat: block quote unwrapping (normal/visual mode) {{{3
+" s:md_unwrap_block_quote() {{{4
+function! s:md_unwrap_block_quote() range abort
+  call s:remove_block_quote_markers(0, a:firstline, a:lastline)
+endfunction
+
+nnoremap <buffer> <Leader>mqu :<C-u>call <SID>md_unwrap_block_quote()<CR>
+xnoremap <buffer> <Leader>mqu :<C-u>'<,'>call <SID>md_unwrap_block_quote()<CR>
+
+" s:remove_block_quote_markers() {{{4
+function! s:remove_block_quote_markers(delete_all, start_lnum, end_lnum) abort
+  for l:lnum in range(a:start_lnum, a:end_lnum)
+    let l:line = getline(l:lnum)
+    let l:match = matchlist(l:line, '^\( \{0,3}\)>[ \t]\?')
+
+    if empty(l:match)
+      continue
+    endif
+
+    let l:removal_len = strlen(l:match[0])
+
+    if a:delete_all
+      let l:match = matchlist(l:line, '^\( \{0,3}\)\(>[ \t]*\)*>[ \t]\?')
+      let l:removal_len = strlen(l:match[0])
+    endif
+
+    call setline(l:lnum, strpart(l:line, l:removal_len))
+  endfor
+endfunction
+
+" feat: block quote deletion (normal/visual mode) {{{3
+" s:md_delete_block_quote() {{{4
+function! s:md_delete_block_quote() range abort
+  call s:remove_block_quote_markers(1, a:firstline, a:lastline)
+endfunction
+
+nnoremap <buffer> <Leader>mqd :<C-u>call <SID>md_delete_block_quote()<CR>
+xnoremap <buffer> <Leader>mqd :<C-u>'<,'>call <SID>md_delete_block_quote()<CR>
+
 " 5.2 List items {{{2
 " feat: bullet list items continuation {{{3
 " local options {{{4
