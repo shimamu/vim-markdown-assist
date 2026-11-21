@@ -392,12 +392,24 @@ setlocal comments+=b:*,b:-,b:+
 " feat: bullet list items insertion (normal/visual mode) {{{3
 " s:md_insert_bullet_list_items() {{{4
 function! s:md_insert_bullet_list_items(visual_mode) range abort
-  for l:lnum in range(a:firstline, a:lastline)
+  call s:insert_list_items(
+        \ a:firstline,
+        \ a:lastline,
+        \ '- ',
+        \ a:visual_mode)
+endfunction
+
+nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_insert_bullet_list_items(0)<CR>
+xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items(1)<CR>
+
+" s:insert_list_items() {{{4
+function! s:insert_list_items(start_lnum, end_lnum, marker, visual_mode) abort
+  for l:lnum in range(a:start_lnum, a:end_lnum)
     let l:line = getline(l:lnum)
 
-    " Skip lines that already have a list marker.
-    if l:line =~# '^\s*[-*+]\s\+'
-          \ || l:line =~# '^\s*\d\+[.)]\s\+'
+    " Skip blank lines and existing list markers.
+    if l:line =~# '^\s*$'
+          \ || l:line =~# '^\s*\%([-*+]\s\+\|\d\+[.)]\s*\)'
       continue
     endif
 
@@ -406,18 +418,12 @@ function! s:md_insert_bullet_list_items(visual_mode) range abort
       continue
     endif
 
-    let l:indent = a:visual_mode
-          \ ? matchstr(l:line, '^\s*')
-          \ : s:get_previous_list_item_indent(l:lnum)
+    let l:indent = s:get_previous_list_item_indent(l:lnum)
+    let l:text = substitute(l:line, '^\s*', '', '')
 
-    call setline(
-          \ l:lnum,
-          \ l:indent . '- ' . substitute(l:line, '^\s*', '', ''))
+    call setline(l:lnum, l:indent . a:marker . l:text)
   endfor
 endfunction
-
-nnoremap <buffer> <Leader>mli :<C-u>call <SID>md_insert_bullet_list_items(0)<CR>
-xnoremap <buffer> <Leader>mli :<C-u>'<,'>call <SID>md_insert_bullet_list_items(1)<CR>
 
 " s:get_previous_list_item_indent() {{{4
 function! s:get_previous_list_item_indent(lnum) abort
@@ -432,7 +438,7 @@ function! s:get_previous_list_item_indent(lnum) abort
 
     if l:line =~# '^\s*[-*+]\s\+'
           \ || l:line =~# '^\s*\d\+[.)]\s\+'
-      if indent(l:lnum) < l:target_indent
+      if indent(l:lnum) <= l:target_indent
         return matchstr(l:line, '^\s*')
       endif
     endif
@@ -484,27 +490,18 @@ endfunction
 
 " feat: ordered list items insertion (normal/visual mode) {{{3
 " s:md_insert_ordered_list_items() {{{4
-function! s:md_insert_ordered_list_items() range abort
-  for l:lnum in range(a:firstline, a:lastline)
-    let l:line = getline(l:lnum)
-
-    " Skip blank lines and existing list markers.
-    if l:line =~# '^\s*$'
-          \ || l:line =~# '^\s*\%([-*+]\s\+\|\d\+[.)]\s*\)'
-      continue
-    endif
-
-    let l:indent = matchstr(l:line, '^\s*')
-    let l:text = strpart(l:line, strlen(l:indent))
-
-    call setline(l:lnum, l:indent . '1. ' . l:text)
-  endfor
+function! s:md_insert_ordered_list_items(visual_mode) range abort
+  call s:insert_list_items(
+        \ a:firstline,
+        \ a:lastline,
+        \ '1. ',
+        \ a:visual_mode)
 
   call s:renumber_ordered_list_items(1, a:firstline, a:lastline)
 endfunction
 
-nnoremap <buffer> <Leader>moi :<C-u>call <SID>md_insert_ordered_list_items()<CR>
-xnoremap <buffer> <Leader>moi :<C-u>'<,'>call <SID>md_insert_ordered_list_items()<CR>
+nnoremap <buffer> <Leader>moi :<C-u>call <SID>md_insert_ordered_list_items(0)<CR>
+xnoremap <buffer> <Leader>moi :<C-u>'<,'>call <SID>md_insert_ordered_list_items(1)<CR>
 
 " s:renumber_ordered_list_items() {{{4
 function! s:renumber_ordered_list_items(start_from_one, start_lnum, end_lnum) abort
