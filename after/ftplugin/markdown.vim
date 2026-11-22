@@ -1540,6 +1540,56 @@ function! s:get_url_title(url)
   endtry
 endfunction
 
+" feat: link replacement of URL under cursor (normal mode) {{{3
+" s:md_replace_url_under_cursor_with_link() {{{4
+function! s:md_replace_url_under_cursor_with_link(with_title) abort
+  let l:parts = s:split_line_at_url_under_cursor()
+
+  if empty(l:parts)
+    return
+  endif
+
+  let l:title = a:with_title ? s:get_url_title(l:parts.url) : ''
+  let l:link = s:create_link(l:parts.url, l:title)
+  let l:line = l:parts.prefix . l:link . l:parts.suffix
+
+  call setline('.', l:line)
+
+  " Move cursor to the end of the link text
+  let l:col = strlen(l:parts.prefix) + strlen(l:title) + 2
+  call cursor(line('.'), l:col)
+endfunction
+
+nnoremap <buffer> <Leader>mar :<C-u>call <SID>md_replace_url_under_cursor_with_link(0)<CR>
+
+" s:split_line_at_url_under_cursor() {{{4
+function! s:split_line_at_url_under_cursor() abort
+  let l:line = getline('.')
+  let l:matches = matchstrpos(l:line, 'https\?://\S*')
+
+  if l:matches[1] < 0
+    return {}
+  endif
+
+  let l:start_col = l:matches[1] + 1
+  let l:end_col = l:matches[2]
+  let l:url = l:matches[0]
+
+  " Check whether the cursor is inside the URL
+  if col('.') < l:start_col || col('.') > l:end_col
+    return {}
+  endif
+
+  return {
+        \ 'prefix': strpart(l:line, 0, l:matches[1]),
+        \ 'url': l:url,
+        \ 'suffix': strpart(l:line, l:matches[2]),
+        \ }
+endfunction
+
+" feat: link replacement of URL under cursor with title (normal mode) {{{3
+nnoremap <buffer> <Leader>maR :<C-u>call <SID>md_replace_url_under_cursor_with_link(1)<CR>
+
 " Modeline {{{1
 " vim:set ts=8 sts=2 sw=2 tw=0:
 " vim:set foldmethod=marker:
