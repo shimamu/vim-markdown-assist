@@ -1592,6 +1592,9 @@ function! s:replace_url_with_link(lnum, parts, with_title) abort
   call cursor(a:lnum, l:col)
 endfunction
 
+" feat: link replacement of URL under cursor with title (normal mode) {{{3
+nnoremap <buffer> <Leader>maR :<C-u>call <SID>md_replace_url_under_cursor_with_link(1)<CR>
+
 " feat: link replacement of selected URL (visual mode) {{{3
 " s:md_replace_selected_url_with_link() {{{4
 function! s:md_replace_selected_url_with_link(with_title) abort
@@ -1635,9 +1638,6 @@ function! s:get_selected_url() abort
         \ 'suffix': strpart(l:line, l:end_col),
         \ }
 endfunction
-
-" feat: link replacement of URL under cursor with title (normal mode) {{{3
-nnoremap <buffer> <Leader>maR :<C-u>call <SID>md_replace_url_under_cursor_with_link(1)<CR>
 
 " Modeline {{{1
 " vim:set ts=8 sts=2 sw=2 tw=0:
