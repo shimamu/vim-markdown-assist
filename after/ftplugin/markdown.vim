@@ -1457,7 +1457,7 @@ nnoremap <buffer> <Leader>mwu :<C-u>call <SID>md_unwrap_nearest()<CR>
 " s:md_insert_link() {{{4
 function! s:md_insert_link()
   let l:url = s:get_clipboard_url()
-  let l:link = '[](' . l:url . ')'
+  let l:link = s:create_link(l:url, '')
   let l:line = getline('.')
   let l:col = col('.')
 
@@ -1489,6 +1489,28 @@ function! s:get_clipboard_url()
   return l:url
 endfunction
 
+" s:create_link() {{{4
+function! s:create_link(url, title) abort
+  return '[' . a:title . '](' . a:url . ')'
+endfunction
+
+" feat: link insertion with title (normal mode) {{{3
+" s:md_insert_link_with_title() {{{4
+function! s:md_insert_link_with_title()
+  let l:url = s:get_clipboard_url()
+  let l:title = empty(l:url) ? '' : s:get_url_title(l:url)
+  let l:link = s:create_link(l:url, l:title)
+  let l:line = getline('.')
+  let l:col = col('.')
+
+  call setline('.', strpart(l:line, 0, l:col - 1)
+        \ . l:link . strpart(l:line, l:col - 1))
+
+  call cursor(line('.'), l:col + strlen(l:title) + 1)
+endfunction
+
+nnoremap <buffer> <Leader>maI :<C-u>call <SID>md_insert_link_with_title()<CR>
+
 " s:get_url_title() {{{4
 function! s:get_url_title(url)
   try
@@ -1507,23 +1529,6 @@ function! s:get_url_title(url)
     return ''
   endtry
 endfunction
-
-" feat: link insertion with title (normal mode) {{{3
-" s:md_insert_link_with_title() {{{4
-function! s:md_insert_link_with_title()
-  let l:url = s:get_clipboard_url()
-  let l:title = empty(l:url) ? '' : s:get_url_title(l:url)
-  let l:link = '[' . l:title . '](' . l:url . ')'
-  let l:line = getline('.')
-  let l:col = col('.')
-
-  call setline('.', strpart(l:line, 0, l:col - 1)
-        \ . l:link . strpart(l:line, l:col - 1))
-
-  call cursor(line('.'), l:col + strlen(l:title) + 1)
-endfunction
-
-nnoremap <buffer> <Leader>maI :<C-u>call <SID>md_insert_link_with_title()<CR>
 
 " Modeline {{{1
 " vim:set ts=8 sts=2 sw=2 tw=0:
