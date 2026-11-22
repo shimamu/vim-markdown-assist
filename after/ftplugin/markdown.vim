@@ -1549,15 +1549,7 @@ function! s:md_replace_url_under_cursor_with_link(with_title) abort
     return
   endif
 
-  let l:title = a:with_title ? s:get_url_title(l:parts.url) : ''
-  let l:link = s:create_link(l:parts.url, l:title)
-  let l:line = l:parts.prefix . l:link . l:parts.suffix
-
-  call setline('.', l:line)
-
-  " Move cursor to the end of the link text
-  let l:col = strlen(l:parts.prefix) + strlen(l:title) + 2
-  call cursor(line('.'), l:col)
+  call s:replace_url_with_link(line('.'), l:parts, a:with_title)
 endfunction
 
 nnoremap <buffer> <Leader>mar :<C-u>call <SID>md_replace_url_under_cursor_with_link(0)<CR>
@@ -1584,6 +1576,63 @@ function! s:split_line_at_url_under_cursor() abort
         \ 'prefix': strpart(l:line, 0, l:matches[1]),
         \ 'url': l:url,
         \ 'suffix': strpart(l:line, l:matches[2]),
+        \ }
+endfunction
+
+" s:replace_url_with_link() {{{4
+function! s:replace_url_with_link(lnum, parts, with_title) abort
+  let l:title = a:with_title ? s:get_url_title(a:parts.url) : ''
+  let l:link = s:create_link(a:parts.url, l:title)
+  let l:line = a:parts.prefix . l:link . a:parts.suffix
+
+  call setline(a:lnum, l:line)
+
+  " Move cursor to the end of the link text
+  let l:col = strlen(a:parts.prefix) + strlen(l:title) + 2
+  call cursor(a:lnum, l:col)
+endfunction
+
+" feat: link replacement of URL under cursor (visual mode) {{{3
+" s:md_replace_selected_url_with_link() {{{4
+function! s:md_replace_selected_url_with_link(with_title) abort
+  let l:parts = s:get_selected_url()
+
+  if empty(l:parts)
+    return
+  endif
+
+  let l:lnum = getpos("'<")[1]
+  call s:replace_url_with_link(l:lnum, l:parts, a:with_title)
+endfunction
+
+xnoremap <buffer> <Leader>mar :<C-u>call <SID>md_replace_selected_url_with_link(0)<CR>
+xnoremap <buffer> <Leader>maR :<C-u>call <SID>md_replace_selected_url_with_link(1)<CR>
+
+" s:get_selected_url() {{{4
+function! s:get_selected_url() abort
+  let l:start = getpos("'<")
+  let l:end = getpos("'>")
+
+  " Only support single-line selections
+  if l:start[1] != l:end[1]
+    return {}
+  endif
+
+  let l:line = getline(l:start[1])
+  let l:start_col = l:start[2]
+  let l:end_col = l:end[2]
+
+  let l:url = strpart(l:line, l:start_col - 1, l:end_col - l:start_col + 1)
+
+  " Check whether the selected text is a URL
+  if l:url !~# '^https\?://\S\+$'
+    return {}
+  endif
+
+  return {
+        \ 'prefix': strpart(l:line, 0, l:start_col - 1),
+        \ 'url': l:url,
+        \ 'suffix': strpart(l:line, l:end_col),
         \ }
 endfunction
 
