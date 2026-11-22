@@ -1461,8 +1461,7 @@ function! s:md_insert_link()
   let l:line = getline('.')
   let l:col = col('.')
 
-  call setline('.', strpart(l:line, 0, l:col - 1)
-        \ . l:link . strpart(l:line, l:col - 1))
+  call setline('.', s:insert_text_at(l:line, l:link, l:col))
 
   " Move cursor inside link text
   call cursor(line('.'), l:col + 1)
@@ -1494,6 +1493,12 @@ function! s:create_link(url, title) abort
   return '[' . a:title . '](' . a:url . ')'
 endfunction
 
+" s:insert_text_at() {{{4
+function! s:insert_text_at(line, text, col) abort
+  return strpart(a:line, 0, a:col - 1)
+        \ . a:text . strpart(a:line, a:col - 1)
+endfunction
+
 " feat: link insertion with title (normal mode) {{{3
 " s:md_insert_link_with_title() {{{4
 function! s:md_insert_link_with_title()
@@ -1503,8 +1508,7 @@ function! s:md_insert_link_with_title()
   let l:line = getline('.')
   let l:col = col('.')
 
-  call setline('.', strpart(l:line, 0, l:col - 1)
-        \ . l:link . strpart(l:line, l:col - 1))
+  call setline('.', s:insert_text_at(l:line, l:link, l:col))
 
   call cursor(line('.'), l:col + strlen(l:title) + 1)
 endfunction
