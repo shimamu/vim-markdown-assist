@@ -1592,7 +1592,7 @@ function! s:replace_url_with_link(lnum, parts, with_title) abort
   call cursor(a:lnum, l:col)
 endfunction
 
-" feat: link replacement of URL under cursor (visual mode) {{{3
+" feat: link replacement of selected URL (visual mode) {{{3
 " s:md_replace_selected_url_with_link() {{{4
 function! s:md_replace_selected_url_with_link(with_title) abort
   let l:parts = s:get_selected_url()
