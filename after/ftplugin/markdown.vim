@@ -1455,19 +1455,12 @@ nnoremap <buffer> <Leader>mwu :<C-u>call <SID>md_unwrap_nearest()<CR>
 " 6.6 Links {{{2
 " feat: link insertion (normal mode) {{{3
 " s:md_insert_link() {{{4
-function! s:md_insert_link()
+function! s:md_insert_link(after_cursor) abort
   let l:url = s:get_clipboard_url()
-  let l:link = s:create_link(l:url, '')
-  let l:line = getline('.')
-  let l:col = col('.')
-
-  call setline('.', s:insert_text_at(l:line, l:link, l:col))
-
-  " Move cursor inside link text
-  call cursor(line('.'), l:col + 1)
+  call s:insert_link(l:url, '', a:after_cursor)
 endfunction
 
-nnoremap <buffer> <Leader>mai :<C-u>call <SID>md_insert_link()<CR>
+nnoremap <buffer> <Leader>mai :<C-u>call <SID>md_insert_link(0)<CR>
 
 " s:get_clipboard_url() {{{4
 function! s:get_clipboard_url()
@@ -1488,6 +1481,18 @@ function! s:get_clipboard_url()
   return l:url
 endfunction
 
+" s:insert_link() {{{4
+function! s:insert_link(url, title, after_cursor) abort
+  let l:link = s:create_link(a:url, a:title)
+  let l:line = getline('.')
+  let l:col = col('.') + (a:after_cursor ? 1 : 0)
+
+  call setline('.', s:insert_text_at(l:line, l:link, l:col))
+
+  " Move cursor to the end of the link text
+  call cursor(line('.'), l:col + strlen(a:title) + 1)
+endfunction
+
 " s:create_link() {{{4
 function! s:create_link(url, title) abort
   return '[' . a:title . '](' . a:url . ')'
@@ -1499,21 +1504,22 @@ function! s:insert_text_at(line, text, col) abort
         \ . a:text . strpart(a:line, a:col - 1)
 endfunction
 
+" feat: link insertion after cursor (normal mode) {{{3
+nnoremap <buffer> <Leader>maa :<C-u>call <SID>md_insert_link(1)<CR>
+
 " feat: link insertion with title (normal mode) {{{3
 " s:md_insert_link_with_title() {{{4
-function! s:md_insert_link_with_title()
+function! s:md_insert_link_with_title(after_cursor) abort
   let l:url = s:get_clipboard_url()
   let l:title = empty(l:url) ? '' : s:get_url_title(l:url)
-  let l:link = s:create_link(l:url, l:title)
-  let l:line = getline('.')
-  let l:col = col('.')
 
-  call setline('.', s:insert_text_at(l:line, l:link, l:col))
-
-  call cursor(line('.'), l:col + strlen(l:title) + 1)
+  call s:insert_link(l:url, l:title, a:after_cursor)
 endfunction
 
-nnoremap <buffer> <Leader>maI :<C-u>call <SID>md_insert_link_with_title()<CR>
+nnoremap <buffer> <Leader>maI :<C-u>call <SID>md_insert_link_with_title(0)<CR>
+
+" feat: link insertion with title after cursor (normal mode) {{{3
+nnoremap <buffer> <Leader>maA :<C-u>call <SID>md_insert_link_with_title(1)<CR>
 
 " s:get_url_title() {{{4
 function! s:get_url_title(url)
