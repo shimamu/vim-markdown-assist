@@ -75,6 +75,25 @@ endfunction
 nnoremap <buffer> <Leader>mfw :<C-u>call <SID>md_wrap_fenced_code_block(line('.'), line('.'))<CR>
 xnoremap <buffer> <Leader>mfw :<C-u>call <SID>md_wrap_fenced_code_block(line("'<"), line("'>"))<CR>
 
+" 4.7 Link reference definitions {{{2
+" feat: link reference definition insertion (normal/visual mode) {{{3
+" s:md_insert_link_reference_definition() {{{4
+function! s:md_insert_link_reference_definition() range abort
+  for l:lnum in range(a:firstline, a:lastline)
+    let l:line = getline(l:lnum)
+
+    if l:line =~# '^\s*\[\]:'
+      continue
+    endif
+
+    let l:line = substitute(l:line, '^\(\s*\)', '\1[]: ', '')
+    call setline(l:lnum, l:line)
+  endfor
+endfunction
+
+nnoremap <buffer> <Leader>mRi :<C-u>call <SID>md_insert_link_reference_definition()<CR>
+xnoremap <buffer> <Leader>mRi :<C-u>'<,'>call <SID>md_insert_link_reference_definition()<CR>
+
 " 4.10 Tables (extension) {{{2
 " feat: convert text and CSV to Markdown table and format it (normal/visual mode) {{{3
 " constants {{{4
