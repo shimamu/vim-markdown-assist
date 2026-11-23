@@ -94,6 +94,69 @@ endfunction
 nnoremap <buffer> <Leader>mRi :<C-u>call <SID>md_insert_link_reference_definition()<CR>
 xnoremap <buffer> <Leader>mRi :<C-u>'<,'>call <SID>md_insert_link_reference_definition()<CR>
 
+" feat: link label insertion (insert mode) {{{3
+" s:md_insert_link_label() {{{4
+function! s:md_insert_link_label(findstart, base) abort
+  if a:findstart
+    " Return the cursor position as the start of completion.
+    return col('.') - 1
+  endif
+
+  let l:matches = []
+  let l:seen = {}
+  let l:max_width = 0
+  let l:definitions = []
+
+  " Collect link reference definitions.
+  for l:lnum in range(1, line('$'))
+    let l:line = getline(l:lnum)
+    let l:match = matchlist(l:line, '^\s*\[\([^]]\+\)\]:\s*\(.\+\)$')
+
+    if empty(l:match)
+      continue
+    endif
+
+    let l:label = l:match[1]
+    let l:key = tolower(substitute(l:label, '\s\+', ' ', 'g'))
+
+    if has_key(l:seen, l:key)
+      continue
+    endif
+
+    let l:seen[l:key] = 1
+
+    call add(l:definitions, {
+          \ 'label': l:label,
+          \ 'destination': l:match[2],
+          \ })
+
+    let l:max_width = max([l:max_width, strdisplaywidth(l:label)])
+  endfor
+
+  " Create completion candidates.
+  for l:item in l:definitions
+    let l:abbr = printf(
+          \ '[%s]%s: %s',
+          \ l:item.label,
+          \ repeat(' ', l:max_width - strdisplaywidth(l:item.label)),
+          \ l:item.destination)
+
+    call add(l:matches, {
+          \ 'word': '[' . l:item.label . ']',
+          \ 'abbr': l:abbr,
+          \ })
+  endfor
+
+  " Sort candidates by label.
+  call sort(l:matches, {a, b -> a.word ># b.word ? 1 : a.word <# b.word ? -1 : 0})
+
+  return l:matches
+endfunction
+
+let &l:completefunc = expand('<SID>') . 'md_insert_link_label'
+
+inoremap <buffer> <C-l> <C-x><C-u>
+
 " 4.10 Tables (extension) {{{2
 " feat: convert text and CSV to Markdown table and format it (normal/visual mode) {{{3
 " constants {{{4
