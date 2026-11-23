@@ -1649,32 +1649,59 @@ function! s:get_selected_url() abort
         \ }
 endfunction
 
-" feat: link wrapping (normal mode) {{{3
-" s:md_wrap_link_text() {{{4
-function! s:md_wrap_link_text(type) abort
-  call s:wrap_link_text(a:type, 0)
+" feat: link text wrapping (normal mode) {{{3
+" s:md_wrap_link_text_in_normal_mode() {{{4
+function! s:md_wrap_link_text_in_normal_mode(type) abort
+  call s:wrap_link_text_in_normal_mode(a:type, 0)
 endfunction
 
-nnoremap <buffer> <Leader>maw :<C-u>set operatorfunc=<SID>md_wrap_link_text<CR>g@
+nnoremap <buffer> <Leader>maw :<C-u>set operatorfunc=<SID>md_wrap_link_text_in_normal_mode<CR>g@
 
-" s:wrap_link_text() {{{4
-function! s:wrap_link_text(type, with_url) abort
-  let l:url = a:with_url ? s:get_clipboard_url() : ''
-  let l:wrapper = {
-        \ 'start': '[',
-        \ 'end': '](' . l:url . ')',
-        \ }
-
+" s:wrap_link_text_in_normal_mode() {{{4
+function! s:wrap_link_text_in_normal_mode(type, with_url) abort
+  let l:wrapper = s:create_link_wrapper(a:with_url)
   call s:wrap_text_in_normal_mode(a:type, l:wrapper)
 endfunction
 
-" feat: link wrapping with title (normal mode) {{{3
-" s:md_wrap_link_text_with_url() {{{4
-function! s:md_wrap_link_text_with_url(type) abort
-  call s:wrap_link_text(a:type, 1)
+" s:create_link_wrapper() {{{4
+function! s:create_link_wrapper(with_url) abort
+  let l:url = a:with_url ? s:get_clipboard_url() : ''
+
+  return {
+        \ 'start': '[',
+        \ 'end': '](' . l:url . ')',
+        \ }
 endfunction
 
-nnoremap <buffer> <Leader>maW :<C-u>set operatorfunc=<SID>md_wrap_link_text_with_url<CR>g@
+" feat: link text wrapping (visual mode) {{{3
+" s:md_wrap_link_text_in_visual_mode() {{{4
+function! s:md_wrap_link_text_in_visual_mode() abort
+  call s:wrap_link_text_in_visual_mode(0)
+endfunction
+
+xnoremap <buffer> <Leader>maw :<C-u>call <SID>md_wrap_link_text_in_visual_mode()<CR>
+
+" s:wrap_link_text_in_visual_mode() {{{4
+function! s:wrap_link_text_in_visual_mode(with_url) abort
+  let l:wrapper = s:create_link_wrapper(a:with_url)
+  call s:wrap_text_in_visual_mode(l:wrapper)
+endfunction
+
+" feat: link text wrapping with URL (normal mode) {{{3
+" s:md_wrap_link_text_with_url_in_normal_mode() {{{4
+function! s:md_wrap_link_text_with_url_in_normal_mode(type) abort
+  call s:wrap_link_text_in_normal_mode(a:type, 1)
+endfunction
+
+nnoremap <buffer> <Leader>maW :<C-u>set operatorfunc=<SID>md_wrap_link_text_with_url_in_normal_mode<CR>g@
+
+" feat: link text wrapping with URL (visual mode) {{{3
+" s:md_wrap_link_text_with_url_in_visual_mode() {{{4
+function! s:md_wrap_link_text_with_url_in_visual_mode() abort
+  call s:wrap_link_text_in_visual_mode(1)
+endfunction
+
+xnoremap <buffer> <Leader>maW :<C-u>call <SID>md_wrap_link_text_with_url_in_visual_mode()<CR>
 
 " Modeline {{{1
 " vim:set ts=8 sts=2 sw=2 tw=0:
