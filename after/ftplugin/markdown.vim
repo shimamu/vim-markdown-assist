@@ -1462,7 +1462,7 @@ endfunction
 nnoremap <buffer> <Leader>mwu :<C-u>call <SID>md_unwrap_nearest()<CR>
 
 " 6.6 Links {{{2
-" feat: link insertion (normal mode) {{{3
+" feat: link insertion (clipboard, without title, before cursor) (normal mode) {{{3
 " s:md_insert_link() {{{4
 function! s:md_insert_link(after_cursor) abort
   let l:url = s:get_clipboard_url()
@@ -1525,10 +1525,10 @@ function! s:insert_text_at(line, text, col) abort
         \ . a:text . strpart(a:line, a:col - 1)
 endfunction
 
-" feat: link insertion after cursor (normal mode) {{{3
+" feat: link insertion (clipboard, without title, after cursor) (normal mode) {{{3
 nnoremap <buffer> <Leader>maa :<C-u>call <SID>md_insert_link(1)<CR>
 
-" feat: link insertion with title (normal mode) {{{3
+" feat: link insertion (clipboard, with title, before cursor) (normal mode) {{{3
 " s:md_insert_link_with_title() {{{4
 function! s:md_insert_link_with_title(after_cursor) abort
   let l:url = s:get_clipboard_url()
@@ -1539,7 +1539,7 @@ endfunction
 
 nnoremap <buffer> <Leader>maI :<C-u>call <SID>md_insert_link_with_title(0)<CR>
 
-" feat: link insertion with title after cursor (normal mode) {{{3
+" feat: link insertion (clipboard, with title, after cursor) (normal mode) {{{3
 nnoremap <buffer> <Leader>maA :<C-u>call <SID>md_insert_link_with_title(1)<CR>
 
 " s:get_url_title() {{{4
@@ -1561,7 +1561,7 @@ function! s:get_url_title(url)
   endtry
 endfunction
 
-" feat: link insertion from register (normal mode) {{{3
+" feat: link insertion (register, without title, before cursor) (normal mode) {{{3
 " s:md_insert_link_from_register() {{{4
 function! s:md_insert_link_from_register(after_cursor, with_title) abort
   let l:url = s:get_register_url(v:register)
@@ -1585,13 +1585,13 @@ function! s:get_register_url(register) abort
   return l:url
 endfunction
 
-" feat: link insertion from register after cursor (normal mode) {{{3
+" feat: link insertion (register, without title, after cursor) (normal mode) {{{3
 nnoremap <buffer> <Leader>maPP :<C-u>call <SID>md_insert_link_from_register(1, 0)<CR>
 
-" feat: link insertion from register with title (normal mode) {{{3
+" feat: link insertion (register, with title, before cursor) (normal mode) {{{3
 nnoremap <buffer> <Leader>map :<C-u>call <SID>md_insert_link_from_register(0, 1)<CR>
 
-" feat: link insertion from register with title after cursor (normal mode) {{{3
+" feat: link insertion (register, with title, after cursor) (normal mode) {{{3
 nnoremap <buffer> <Leader>maP :<C-u>call <SID>md_insert_link_from_register(1, 1)<CR>
 
 " feat: link replacement of URL under cursor (normal mode) {{{3
