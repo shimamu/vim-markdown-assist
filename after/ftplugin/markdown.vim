@@ -1464,12 +1464,23 @@ nnoremap <buffer> <Leader>mwu :<C-u>call <SID>md_unwrap_nearest()<CR>
 " 6.6 Links {{{2
 " feat: link insertion (clipboard, without title, before cursor) (normal mode) {{{3
 " s:md_insert_link() {{{4
-function! s:md_insert_link(after_cursor) abort
-  let l:url = s:get_clipboard_url()
-  call s:insert_link(l:url, '', a:after_cursor)
+function! s:md_insert_link(source, with_title, after_cursor) abort
+  if a:source ==# 'clipboard'
+    let l:url = s:get_clipboard_url()
+  elseif a:source ==# 'register'
+    let l:url = s:get_register_url(v:register)
+  else
+    throw 'md_insert_link: unsupported source: ' . a:source
+  endif
+
+  let l:title = a:with_title && !empty(l:url)
+        \ ? s:get_url_title(l:url)
+        \ : ''
+
+  call s:insert_link(l:url, l:title, a:after_cursor)
 endfunction
 
-nnoremap <buffer> <Leader>mai :<C-u>call <SID>md_insert_link(0)<CR>
+nnoremap <buffer> <Leader>mai :<C-u>call <SID>md_insert_link('clipboard', 0, 0)<CR>
 
 " s:get_clipboard_url() {{{4
 function! s:get_clipboard_url()
@@ -1502,6 +1513,36 @@ function! s:find_url(text) abort
   return matchstrpos(a:text, '\vhttps?://[A-Za-z0-9._~:/?#\[\]@!$&''()*+,;=%-]+')
 endfunction
 
+" s:get_register_url() {{{4
+function! s:get_register_url(register) abort
+  let l:url = trim(getreg(a:register))
+
+  if !s:is_valid_url(l:url)
+    return ''
+  endif
+
+  return l:url
+endfunction
+
+" s:get_url_title() {{{4
+function! s:get_url_title(url)
+  try
+    let l:dom = webapi#html#parseURL(a:url)
+    let l:title = l:dom.find('title')
+
+    if empty(l:title)
+      return ''
+    endif
+
+    return trim(l:title.value())
+  catch
+    echohl WarningMsg
+    echomsg 'Failed to get page title: ' . v:exception
+    echohl None
+    return ''
+  endtry
+endfunction
+
 " s:insert_link() {{{4
 function! s:insert_link(url, title, after_cursor) abort
   let l:link = s:create_link(a:url, a:title)
@@ -1526,73 +1567,32 @@ function! s:insert_text_at(line, text, col) abort
 endfunction
 
 " feat: link insertion (clipboard, without title, after cursor) (normal mode) {{{3
-nnoremap <buffer> <Leader>maa :<C-u>call <SID>md_insert_link(1)<CR>
+" mappings {{{4
+nnoremap <buffer> <Leader>maa :<C-u>call <SID>md_insert_link('clipboard', 0, 1)<CR>
 
 " feat: link insertion (clipboard, with title, before cursor) (normal mode) {{{3
-" s:md_insert_link_with_title() {{{4
-function! s:md_insert_link_with_title(after_cursor) abort
-  let l:url = s:get_clipboard_url()
-  let l:title = empty(l:url) ? '' : s:get_url_title(l:url)
-
-  call s:insert_link(l:url, l:title, a:after_cursor)
-endfunction
-
-nnoremap <buffer> <Leader>maI :<C-u>call <SID>md_insert_link_with_title(0)<CR>
+" mappings {{{4
+nnoremap <buffer> <Leader>maI :<C-u>call <SID>md_insert_link('clipboard', 1, 0)<CR>
 
 " feat: link insertion (clipboard, with title, after cursor) (normal mode) {{{3
-nnoremap <buffer> <Leader>maA :<C-u>call <SID>md_insert_link_with_title(1)<CR>
-
-" s:get_url_title() {{{4
-function! s:get_url_title(url)
-  try
-    let l:dom = webapi#html#parseURL(a:url)
-    let l:title = l:dom.find('title')
-
-    if empty(l:title)
-      return ''
-    endif
-
-    return trim(l:title.value())
-  catch
-    echohl WarningMsg
-    echomsg 'Failed to get page title: ' . v:exception
-    echohl None
-    return ''
-  endtry
-endfunction
+" mappings {{{4
+nnoremap <buffer> <Leader>maA :<C-u>call <SID>md_insert_link('clipboard', 1, 1)<CR>
 
 " feat: link insertion (register, without title, before cursor) (normal mode) {{{3
-" s:md_insert_link_from_register() {{{4
-function! s:md_insert_link_from_register(after_cursor, with_title) abort
-  let l:url = s:get_register_url(v:register)
-  let l:title = a:with_title && !empty(l:url)
-        \ ? s:get_url_title(l:url)
-        \ : ''
-
-  call s:insert_link(l:url, l:title, a:after_cursor)
-endfunction
-
-nnoremap <buffer> <Leader>mapp :<C-u>call <SID>md_insert_link_from_register(0, 0)<CR>
-
-" s:get_register_url() {{{4
-function! s:get_register_url(register) abort
-  let l:url = trim(getreg(a:register))
-
-  if !s:is_valid_url(l:url)
-    return ''
-  endif
-
-  return l:url
-endfunction
+" mappings {{{4
+nnoremap <buffer> <Leader>mapp :<C-u>call <SID>md_insert_link('register', 0, 0)<CR>
 
 " feat: link insertion (register, without title, after cursor) (normal mode) {{{3
-nnoremap <buffer> <Leader>maPP :<C-u>call <SID>md_insert_link_from_register(1, 0)<CR>
+" mappings {{{4
+nnoremap <buffer> <Leader>maPP :<C-u>call <SID>md_insert_link('register', 0, 1)<CR>
 
 " feat: link insertion (register, with title, before cursor) (normal mode) {{{3
-nnoremap <buffer> <Leader>map :<C-u>call <SID>md_insert_link_from_register(0, 1)<CR>
+" mappings {{{4
+nnoremap <buffer> <Leader>map :<C-u>call <SID>md_insert_link('register', 1, 0)<CR>
 
 " feat: link insertion (register, with title, after cursor) (normal mode) {{{3
-nnoremap <buffer> <Leader>maP :<C-u>call <SID>md_insert_link_from_register(1, 1)<CR>
+" mappings {{{4
+nnoremap <buffer> <Leader>maP :<C-u>call <SID>md_insert_link('register', 1, 1)<CR>
 
 " feat: link replacement of URL under cursor (normal mode) {{{3
 " s:md_replace_url_under_cursor_with_link() {{{4
