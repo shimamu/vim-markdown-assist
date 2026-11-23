@@ -1483,11 +1483,23 @@ function! s:get_clipboard_url()
 
   let l:url = trim(l:url)
 
-  if l:url !~# '^https\?://'
+  if !s:is_valid_url(l:url)
     return ''
   endif
 
   return l:url
+endfunction
+
+" s:is_valid_url() {{{4
+function! s:is_valid_url(url) abort
+  let l:matches = s:find_url(a:url)
+
+  return l:matches[1] == 0 && l:matches[2] == strlen(a:url)
+endfunction
+
+" s:find_url() {{{4
+function! s:find_url(text) abort
+  return matchstrpos(a:text, '\vhttps?://[A-Za-z0-9._~:/?#\[\]@!$&''()*+,;=%-]+')
 endfunction
 
 " s:insert_link() {{{4
@@ -1566,7 +1578,7 @@ nnoremap <buffer> <Leader>mapp :<C-u>call <SID>md_insert_link_from_register(0, 0
 function! s:get_register_url(register) abort
   let l:url = trim(getreg(a:register))
 
-  if l:url !~# '^https\?://'
+  if !s:is_valid_url(l:url)
     return ''
   endif
 
@@ -1599,7 +1611,7 @@ nnoremap <buffer> <Leader>mar :<C-u>call <SID>md_replace_url_under_cursor_with_l
 " s:split_line_at_url_under_cursor() {{{4
 function! s:split_line_at_url_under_cursor() abort
   let l:line = getline('.')
-  let l:matches = matchstrpos(l:line, '\vhttps?://[A-Za-z0-9._~:/?#\[\]@!$&''()*+,;=%-]+')
+  let l:matches = s:find_url(l:line)
 
   if l:matches[1] < 0
     return {}
@@ -1671,7 +1683,7 @@ function! s:get_selected_url() abort
   let l:url = strpart(l:line, l:start_col - 1, l:end_col - l:start_col + 1)
 
   " Check whether the selected text is a URL
-  if l:url !~# '^https\?://\S\+$'
+  if !s:is_valid_url(l:url)
     return {}
   endif
 
