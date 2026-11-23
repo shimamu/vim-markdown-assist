@@ -1599,7 +1599,7 @@ nnoremap <buffer> <Leader>mar :<C-u>call <SID>md_replace_url_under_cursor_with_l
 " s:split_line_at_url_under_cursor() {{{4
 function! s:split_line_at_url_under_cursor() abort
   let l:line = getline('.')
-  let l:matches = matchstrpos(l:line, 'https\?://\S*')
+  let l:matches = matchstrpos(l:line, '\vhttps?://[A-Za-z0-9._~:/?#\[\]@!$&''()*+,;=%-]+')
 
   if l:matches[1] < 0
     return {}
