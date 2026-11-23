@@ -1649,6 +1649,33 @@ function! s:get_selected_url() abort
         \ }
 endfunction
 
+" feat: link wrapping (normal mode) {{{3
+" s:md_wrap_link_text() {{{4
+function! s:md_wrap_link_text(type) abort
+  call s:wrap_link_text(a:type, 0)
+endfunction
+
+nnoremap <buffer> <Leader>maw :<C-u>set operatorfunc=<SID>md_wrap_link_text<CR>g@
+
+" s:wrap_link_text() {{{4
+function! s:wrap_link_text(type, with_url) abort
+  let l:url = a:with_url ? s:get_clipboard_url() : ''
+  let l:wrapper = {
+        \ 'start': '[',
+        \ 'end': '](' . l:url . ')',
+        \ }
+
+  call s:wrap_text_in_normal_mode(a:type, l:wrapper)
+endfunction
+
+" feat: link wrapping with title (normal mode) {{{3
+" s:md_wrap_link_text_with_url() {{{4
+function! s:md_wrap_link_text_with_url(type) abort
+  call s:wrap_link_text(a:type, 1)
+endfunction
+
+nnoremap <buffer> <Leader>maW :<C-u>set operatorfunc=<SID>md_wrap_link_text_with_url<CR>g@
+
 " Modeline {{{1
 " vim:set ts=8 sts=2 sw=2 tw=0:
 " vim:set foldmethod=marker:
