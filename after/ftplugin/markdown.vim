@@ -1196,7 +1196,10 @@ xnoremap <buffer> <Leader>mkd :<C-u>'<,'>call <SID>md_delete_task_list_items()<C
 " 6.3 Code spans {{{2
 " feat: code span wrapping (normal/visual mode) {{{3
 " constants {{{4
-const s:MD_CODE_SPAN = "`"
+let s:MD_CODE_SPAN = {
+      \ 'start': '`',
+      \ 'end': '`',
+      \ }
 
 " s:md_wrap_code_span() {{{4
 function! s:md_wrap_code_span(type) abort
@@ -1265,11 +1268,11 @@ function! s:insert_wrapper(line, start_byte, end_byte, wrapper, mode) abort
   let l:suffix = strpart(a:line, a:end_byte)
 
   if a:mode ==# 'start'
-    return l:prefix . a:wrapper . l:middle . l:suffix
+    return l:prefix . a:wrapper.start . l:middle . l:suffix
   elseif a:mode ==# 'end'
-    return l:prefix . l:middle . a:wrapper . l:suffix
+    return l:prefix . l:middle . a:wrapper.end . l:suffix
   elseif a:mode ==# 'both'
-    return l:prefix . a:wrapper . l:middle . a:wrapper . l:suffix
+    return l:prefix . a:wrapper.start . l:middle . a:wrapper.end . l:suffix
   endif
 
   return a:line
@@ -1281,8 +1284,8 @@ function! s:wrap_text_line(start_pos, end_pos, wrapper) abort
   let l:end_lnum = a:end_pos[1]
   let l:lines = getline(l:start_lnum, l:end_lnum)
 
-  let l:lines[0] = a:wrapper . l:lines[0]
-  let l:lines[-1] .= a:wrapper
+  let l:lines[0] = a:wrapper.start . l:lines[0]
+  let l:lines[-1] .= a:wrapper.end
 
   call setline(l:start_lnum, l:lines)
 endfunction
@@ -1387,7 +1390,10 @@ endfunction
 " 6.4 Emphasis and strong emphasis {{{2
 " feat: bold text wrapping (normal/visual mode) {{{3
 " constants {{{4
-const s:MD_EMPHASIS_BOLD = "**"
+let s:MD_EMPHASIS_BOLD = {
+      \ 'start': '**',
+      \ 'end': '**',
+      \ }
 
 " s:md_wrap_bold() {{{4
 function! s:md_wrap_bold(type) abort
@@ -1413,7 +1419,10 @@ nnoremap <buffer> <Leader>mbu :<C-u>call <SID>md_unwrap_bold()<CR>
 
 " feat: italic text wrapping (normal/visual mode) {{{3
 " constants {{{4
-const s:MD_EMPHASIS_ITALIC = "_"
+let s:MD_EMPHASIS_ITALIC = {
+      \ 'start': '_',
+      \ 'end': '_',
+      \ }
 
 " s:md_wrap_italic() {{{4
 function! s:md_wrap_italic(type) abort
@@ -1600,6 +1609,7 @@ nnoremap <buffer> <Leader>maR :<C-u>call <SID>md_replace_url_under_cursor_with_l
 function! s:md_replace_selected_url_with_link(with_title) abort
   let l:parts = s:get_selected_url()
 
+  " test
   if empty(l:parts)
     return
   endif
