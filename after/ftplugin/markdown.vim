@@ -1549,6 +1549,39 @@ function! s:get_url_title(url)
   endtry
 endfunction
 
+" feat: link insertion from register (normal mode) {{{3
+" s:md_insert_link_from_register() {{{4
+function! s:md_insert_link_from_register(after_cursor, with_title) abort
+  let l:url = s:get_register_url(v:register)
+  let l:title = a:with_title && !empty(l:url)
+        \ ? s:get_url_title(l:url)
+        \ : ''
+
+  call s:insert_link(l:url, l:title, a:after_cursor)
+endfunction
+
+nnoremap <buffer> <Leader>mapp :<C-u>call <SID>md_insert_link_from_register(0, 0)<CR>
+
+" s:get_register_url() {{{4
+function! s:get_register_url(register) abort
+  let l:url = trim(getreg(a:register))
+
+  if l:url !~# '^https\?://'
+    return ''
+  endif
+
+  return l:url
+endfunction
+
+" feat: link insertion from register after cursor (normal mode) {{{3
+nnoremap <buffer> <Leader>maPP :<C-u>call <SID>md_insert_link_from_register(1, 0)<CR>
+
+" feat: link insertion from register with title (normal mode) {{{3
+nnoremap <buffer> <Leader>map :<C-u>call <SID>md_insert_link_from_register(0, 1)<CR>
+
+" feat: link insertion from register with title after cursor (normal mode) {{{3
+nnoremap <buffer> <Leader>maP :<C-u>call <SID>md_insert_link_from_register(1, 1)<CR>
+
 " feat: link replacement of URL under cursor (normal mode) {{{3
 " s:md_replace_url_under_cursor_with_link() {{{4
 function! s:md_replace_url_under_cursor_with_link(with_title) abort
