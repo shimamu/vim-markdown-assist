@@ -349,6 +349,7 @@ execute 'nnoremap <buffer> <Leader>mtah :<C-u>call <SID>md_table_add_column(' . 
 setlocal comments+=n:>
 
 " feat: block quote insertion (normal/visual mode) {{{3
+" s:md_insert_block_quote() {{{4
 function! s:md_insert_block_quote() range abort
   for l:lnum in range(a:firstline, a:lastline)
     call setline(l:lnum, '> ' . getline(l:lnum))
