@@ -1647,6 +1647,7 @@ function! s:replace_url_with_link(lnum, parts, with_title) abort
 endfunction
 
 " feat: link replacement of URL under cursor with title (normal mode) {{{3
+" mappings {{{4
 nnoremap <buffer> <Leader>maR :<C-u>call <SID>md_replace_url_under_cursor_with_link(1)<CR>
 
 " feat: link replacement of selected URL (visual mode) {{{3
