@@ -1203,20 +1203,20 @@ let s:MD_CODE_SPAN = {
 
 " s:md_wrap_code_span() {{{4
 function! s:md_wrap_code_span(type) abort
-  call s:wrap_text(a:type, s:MD_CODE_SPAN)
+  call s:wrap_text_in_normal_mode(a:type, s:MD_CODE_SPAN)
 endfunction
 
 nnoremap <buffer> <Leader>mcw :<C-u>set operatorfunc=<SID>md_wrap_code_span<CR>g@
 
 " s:md_wrap_code_span_visual() {{{4
 function! s:md_wrap_code_span_visual() abort
-  call s:wrap_text_visual(s:MD_CODE_SPAN)
+  call s:wrap_text_in_visual_mode(s:MD_CODE_SPAN)
 endfunction
 
 xnoremap <buffer> <Leader>mcw :<C-u>call <SID>md_wrap_code_span_visual()<CR>
 
-" s:wrap_text() {{{4
-function! s:wrap_text(type, wrapper) abort
+" s:wrap_text_in_normal_mode() {{{4
+function! s:wrap_text_in_normal_mode(type, wrapper) abort
   let l:start_pos = getpos("'[")
   let l:end_pos = getpos("']")
 
@@ -1325,8 +1325,8 @@ function! s:wrap_text_block(start_pos, end_pos, wrapper) abort
   call setline(l:start_lnum, l:new_lines)
 endfunction
 
-" s:wrap_text_visual() {{{4
-function! s:wrap_text_visual(wrapper) abort
+" s:wrap_text_in_visual_mode() {{{4
+function! s:wrap_text_in_visual_mode(wrapper) abort
   let l:start_pos = getpos("'<")
   let l:end_pos = getpos("'>")
   let l:mode = visualmode()
@@ -1397,14 +1397,14 @@ let s:MD_EMPHASIS_BOLD = {
 
 " s:md_wrap_bold() {{{4
 function! s:md_wrap_bold(type) abort
-  call s:wrap_text(a:type, s:MD_EMPHASIS_BOLD)
+  call s:wrap_text_in_normal_mode(a:type, s:MD_EMPHASIS_BOLD)
 endfunction
 
 nnoremap <buffer> <Leader>mbw :<C-u>set operatorfunc=<SID>md_wrap_bold<CR>g@
 
 " s:md_wrap_bold_visual() {{{4
 function! s:md_wrap_bold_visual() abort
-  call s:wrap_text_visual(s:MD_EMPHASIS_BOLD)
+  call s:wrap_text_in_visual_mode(s:MD_EMPHASIS_BOLD)
 endfunction
 
 xnoremap <buffer> <Leader>mbw :<C-u>call <SID>md_wrap_bold_visual()<CR>
@@ -1426,14 +1426,14 @@ let s:MD_EMPHASIS_ITALIC = {
 
 " s:md_wrap_italic() {{{4
 function! s:md_wrap_italic(type) abort
-  call s:wrap_text(a:type, s:MD_EMPHASIS_ITALIC)
+  call s:wrap_text_in_normal_mode(a:type, s:MD_EMPHASIS_ITALIC)
 endfunction
 
 nnoremap <buffer> <Leader>miw :<C-u>set operatorfunc=<SID>md_wrap_italic<CR>g@
 
 " s:md_wrap_italic_visual() {{{4
 function! s:md_wrap_italic_visual() abort
-  call s:wrap_text_visual(s:MD_EMPHASIS_ITALIC)
+  call s:wrap_text_in_visual_mode(s:MD_EMPHASIS_ITALIC)
 endfunction
 
 xnoremap <buffer> <Leader>miw :<C-u>call <SID>md_wrap_italic_visual()<CR>
