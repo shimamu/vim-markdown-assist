@@ -1237,6 +1237,314 @@ endfunction
 nnoremap <buffer> <Leader>mkt :<C-u>call <SID>md_toggle_task_list_items_state()<CR>
 xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_items_state()<CR>
 
+" feat: task list items sorting (non-recursive) (normal mode) {{{3
+" s:md_sort_task_list_items() {{{4
+function! s:md_sort_task_list_items(recursive) range abort
+  let l:line = getline(a:firstline)
+  let l:info = s:get_list_item_info(l:line)
+
+  " Do nothing unless the first selected line is a task list item.
+  if empty(l:info) || !l:info.is_task
+    return
+  endif
+
+  let l:indent = indent(a:firstline)
+  let l:parent_lnum =
+        \ s:get_parent_list_item_lnum(a:firstline, l:indent)
+
+  " Determine the range of the parent task list.
+  if l:parent_lnum > 0
+    let l:start_lnum = l:parent_lnum + 1
+    let l:end_lnum =
+          \ s:get_list_item_end(l:parent_lnum, line('$'))
+  else
+    let l:range = s:get_list_block_range(
+          \ a:firstline, l:indent)
+    let l:start_lnum = l:range[0]
+    let l:end_lnum = l:range[1]
+  endif
+
+  let l:items = s:get_list_items(
+        \ l:start_lnum, l:end_lnum, l:indent)
+
+  " Find the selected task list item.
+  let l:selected_idx = -1
+
+  for l:i in range(0, len(l:items) - 1)
+    if l:items[l:i].start_lnum == a:firstline
+      let l:selected_idx = l:i
+      break
+    endif
+  endfor
+
+  if l:selected_idx < 0
+    return
+  endif
+
+  " Find the task list group containing the selected item.
+  let l:first_idx = l:selected_idx
+  let l:last_idx = l:selected_idx
+
+  while l:first_idx > 0
+        \ && l:items[l:first_idx - 1].is_task
+    let l:first_idx -= 1
+  endwhile
+
+  while l:last_idx < len(l:items) - 1
+        \ && l:items[l:last_idx + 1].is_task
+    let l:last_idx += 1
+  endwhile
+
+  let l:group_start = l:items[l:first_idx].start_lnum
+  let l:group_end = l:items[l:last_idx].end_lnum
+
+  call s:sort_task_list_groups(
+        \ l:group_start,
+        \ l:group_end,
+        \ l:indent,
+        \ a:recursive)
+endfunction
+
+nnoremap <buffer> <Leader>mks :<C-u>call <SID>md_sort_task_list_items(0)<CR>
+
+" s:get_list_item_info() {{{4
+function! s:get_list_item_info(line) abort
+  let l:match = matchlist(
+        \ a:line,
+        \ '^\(\s*\)\([-*+]\|\d\+[.)]\)\s\+')
+
+  if empty(l:match)
+    return {}
+  endif
+
+  let l:task_match = matchlist(
+        \ a:line,
+        \ '^\s*-\s\+\[\([ xX]\)\]\%(\s\|$\)')
+
+  return {
+        \ 'is_task': !empty(l:task_match),
+        \ 'is_done': !empty(l:task_match)
+        \   && l:task_match[1] =~# '[xX]'
+        \ }
+endfunction
+
+" s:get_parent_list_item_lnum() {{{4
+function! s:get_parent_list_item_lnum(lnum, indent) abort
+  if a:indent == 0
+    return 0
+  endif
+
+  for l:lnum in reverse(range(1, a:lnum - 1))
+    let l:info = s:get_list_item_info(getline(l:lnum))
+
+    if empty(l:info)
+      continue
+    endif
+
+    if indent(l:lnum) < a:indent
+      return l:lnum
+    endif
+  endfor
+
+  return 0
+endfunction
+
+" s:get_list_item_end() {{{4
+function! s:get_list_item_end(start_lnum, end_lnum) abort
+  let l:base_indent = indent(a:start_lnum)
+  let l:end_lnum = a:end_lnum
+
+  for l:lnum in range(a:start_lnum + 1, a:end_lnum)
+    let l:line = getline(l:lnum)
+
+    if s:is_blank_line(l:line)
+      continue
+    endif
+
+    if indent(l:lnum) <= l:base_indent
+      let l:end_lnum = l:lnum - 1
+      break
+    endif
+  endfor
+
+  " Exclude trailing blank lines from the list item.
+  while l:end_lnum > a:start_lnum
+        \ && s:is_blank_line(getline(l:end_lnum))
+    let l:end_lnum -= 1
+  endwhile
+
+  return l:end_lnum
+endfunction
+
+" s:get_list_block_range() {{{4
+function! s:get_list_block_range(lnum, target_indent) abort
+  let l:start_lnum = 1
+  let l:end_lnum = line('$')
+
+  " Find the beginning of the list block.
+  for l:lnum in reverse(range(1, a:lnum - 1))
+    let l:line = getline(l:lnum)
+
+    if s:is_blank_line(l:line)
+      continue
+    endif
+
+    let l:info = s:get_list_item_info(l:line)
+
+    if empty(l:info) && indent(l:lnum) <= a:target_indent
+      let l:start_lnum = l:lnum + 1
+      break
+    endif
+  endfor
+
+  " Find the end of the list block.
+  for l:lnum in range(a:lnum + 1, line('$'))
+    let l:line = getline(l:lnum)
+
+    if s:is_blank_line(l:line)
+      continue
+    endif
+
+    let l:info = s:get_list_item_info(l:line)
+
+    if empty(l:info) && indent(l:lnum) <= a:target_indent
+      let l:end_lnum = l:lnum - 1
+      break
+    endif
+  endfor
+
+  return [l:start_lnum, l:end_lnum]
+endfunction
+
+" s:get_list_items() {{{4
+function! s:get_list_items(start_lnum, end_lnum, target_indent) abort
+  let l:items = []
+  let l:lnum = a:start_lnum
+
+  while l:lnum <= a:end_lnum
+    let l:info = s:get_list_item_info(getline(l:lnum))
+
+    if empty(l:info)
+      let l:lnum += 1
+      continue
+    endif
+
+    let l:indent = indent(l:lnum)
+
+    if l:indent < a:target_indent
+      break
+    endif
+
+    if l:indent > a:target_indent
+      let l:lnum += 1
+      continue
+    endif
+
+    let l:end_lnum = s:get_list_item_end(
+          \ l:lnum, a:end_lnum)
+
+    call add(l:items, {
+          \ 'start_lnum': l:lnum,
+          \ 'end_lnum': l:end_lnum,
+          \ 'is_task': l:info.is_task,
+          \ 'is_done': l:info.is_done,
+          \ 'lines': getline(l:lnum, l:end_lnum)
+          \ })
+
+    let l:lnum = l:end_lnum + 1
+  endwhile
+
+  return l:items
+endfunction
+
+" s:compare_task_list_items() {{{4
+function! s:compare_task_list_items(item1, item2) abort
+  return a:item1.is_done - a:item2.is_done
+endfunction
+
+" s:sort_task_list_groups() {{{4
+function! s:sort_task_list_groups(
+      \ start_lnum, end_lnum, indent, recursive) abort
+
+  let l:items = s:get_list_items(
+        \ a:start_lnum, a:end_lnum, a:indent)
+
+  let l:run = []
+
+  " Sort task items in independent groups.
+  for l:item in l:items
+    if l:item.is_task
+      call add(l:run, l:item)
+      continue
+    endif
+
+    if !empty(l:run)
+      call s:sort_task_list_item_group(l:run)
+      let l:run = []
+    endif
+  endfor
+
+  if !empty(l:run)
+    call s:sort_task_list_item_group(l:run)
+  endif
+
+  if !a:recursive
+    return
+  endif
+
+  " Sort nested task lists recursively.
+  let l:items = s:get_list_items(
+        \ a:start_lnum, a:end_lnum, a:indent)
+
+  for l:item in l:items
+    let l:child_indent = -1
+
+    for l:lnum in range(
+          \ l:item.start_lnum + 1, l:item.end_lnum)
+
+      let l:info = s:get_list_item_info(getline(l:lnum))
+
+      if empty(l:info)
+        continue
+      endif
+
+      let l:indent = indent(l:lnum)
+
+      if l:indent > a:indent
+            \ && (l:child_indent < 0
+            \ || l:indent < l:child_indent)
+        let l:child_indent = l:indent
+      endif
+    endfor
+
+    if l:child_indent >= 0
+      call s:sort_task_list_groups(
+            \ l:item.start_lnum + 1,
+            \ l:item.end_lnum,
+            \ l:child_indent,
+            \ 1)
+    endif
+  endfor
+endfunction
+
+" s:sort_task_list_item_group() {{{4
+function! s:sort_task_list_item_group(items) abort
+  let l:items = sort(
+        \ copy(a:items),
+        \ function('s:compare_task_list_items'))
+
+  let l:lines = []
+
+  for l:item in l:items
+    call extend(l:lines, l:item.lines)
+  endfor
+
+  call setline(a:items[0].start_lnum, l:lines)
+endfunction
+
+" feat: task list items sorting (recursive) (normal mode) {{{3
+nnoremap <buffer> <Leader>mkS :<C-u>call <SID>md_sort_task_list_items(1)<CR>
+
 " feat: task list items unwrapping (normal/visual mode) {{{3
 " s:md_unwrap_task_list_items() {{{4
 function! s:md_unwrap_task_list_items() range abort
