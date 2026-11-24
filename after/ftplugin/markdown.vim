@@ -1256,7 +1256,7 @@ function! s:md_sort_task_list_items(recursive) range abort
   if l:parent_lnum > 0
     let l:start_lnum = l:parent_lnum + 1
     let l:end_lnum =
-          \ s:get_list_item_end(l:parent_lnum, line('$'))
+          \ s:get_list_item_tree_end_lnum(l:parent_lnum)
   else
     let l:range = s:get_list_block_range(
           \ a:firstline, l:indent)
@@ -1349,12 +1349,12 @@ function! s:get_parent_list_item_lnum(lnum, indent) abort
   return 0
 endfunction
 
-" s:get_list_item_end() {{{4
-function! s:get_list_item_end(start_lnum, end_lnum) abort
+" s:get_list_item_tree_end_lnum() {{{4
+function! s:get_list_item_tree_end_lnum(start_lnum) abort
   let l:base_indent = indent(a:start_lnum)
-  let l:end_lnum = a:end_lnum
+  let l:end_lnum = line('$')
 
-  for l:lnum in range(a:start_lnum + 1, a:end_lnum)
+  for l:lnum in range(a:start_lnum + 1, line('$'))
     let l:line = getline(l:lnum)
 
     if s:is_blank_line(l:line)
@@ -1367,7 +1367,7 @@ function! s:get_list_item_end(start_lnum, end_lnum) abort
     endif
   endfor
 
-  " Exclude trailing blank lines from the list item.
+  " Exclude trailing blank lines from the list item tree.
   while l:end_lnum > a:start_lnum
         \ && s:is_blank_line(getline(l:end_lnum))
     let l:end_lnum -= 1
@@ -1440,8 +1440,7 @@ function! s:get_list_items(start_lnum, end_lnum, target_indent) abort
       continue
     endif
 
-    let l:end_lnum = s:get_list_item_end(
-          \ l:lnum, a:end_lnum)
+    let l:end_lnum = s:get_list_item_tree_end_lnum(l:lnum)
 
     call add(l:items, {
           \ 'start_lnum': l:lnum,
