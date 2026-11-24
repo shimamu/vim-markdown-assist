@@ -1258,8 +1258,7 @@ function! s:md_sort_task_list_items(recursive) range abort
     let l:end_lnum =
           \ s:get_list_item_tree_end_lnum(l:parent_lnum)
   else
-    let l:range = s:get_list_block_range(
-          \ a:firstline, l:indent)
+    let l:range = s:get_list_block_range(a:firstline)
     let l:start_lnum = l:range[0]
     let l:end_lnum = l:range[1]
   endif
@@ -1377,7 +1376,14 @@ function! s:get_list_item_tree_end_lnum(start_lnum) abort
 endfunction
 
 " s:get_list_block_range() {{{4
-function! s:get_list_block_range(lnum, target_indent) abort
+function! s:get_list_block_range(lnum) abort
+  let l:info = s:get_list_item_info(getline(a:lnum))
+
+  if empty(l:info)
+    return []
+  endif
+
+  let l:target_indent = indent(a:lnum)
   let l:start_lnum = 1
   let l:end_lnum = line('$')
 
@@ -1391,7 +1397,7 @@ function! s:get_list_block_range(lnum, target_indent) abort
 
     let l:info = s:get_list_item_info(l:line)
 
-    if empty(l:info) && indent(l:lnum) <= a:target_indent
+    if empty(l:info) && indent(l:lnum) <= l:target_indent
       let l:start_lnum = l:lnum + 1
       break
     endif
@@ -1407,7 +1413,7 @@ function! s:get_list_block_range(lnum, target_indent) abort
 
     let l:info = s:get_list_item_info(l:line)
 
-    if empty(l:info) && indent(l:lnum) <= a:target_indent
+    if empty(l:info) && indent(l:lnum) <= l:target_indent
       let l:end_lnum = l:lnum - 1
       break
     endif
