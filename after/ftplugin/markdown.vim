@@ -1389,15 +1389,7 @@ function! s:get_list_block_range(lnum) abort
 
   " Find the beginning of the list block.
   for l:lnum in reverse(range(1, a:lnum - 1))
-    let l:line = getline(l:lnum)
-
-    if s:is_blank_line(l:line)
-      continue
-    endif
-
-    let l:info = s:get_list_item_info(l:line)
-
-    if empty(l:info) && indent(l:lnum) <= l:target_indent
+    if s:is_list_block_boundary(l:lnum, l:target_indent)
       let l:start_lnum = l:lnum + 1
       break
     endif
@@ -1405,21 +1397,26 @@ function! s:get_list_block_range(lnum) abort
 
   " Find the end of the list block.
   for l:lnum in range(a:lnum + 1, line('$'))
-    let l:line = getline(l:lnum)
-
-    if s:is_blank_line(l:line)
-      continue
-    endif
-
-    let l:info = s:get_list_item_info(l:line)
-
-    if empty(l:info) && indent(l:lnum) <= l:target_indent
+    if s:is_list_block_boundary(l:lnum, l:target_indent)
       let l:end_lnum = l:lnum - 1
       break
     endif
   endfor
 
   return [l:start_lnum, l:end_lnum]
+endfunction
+
+" s:is_list_block_boundary() {{{4
+function! s:is_list_block_boundary(lnum, target_indent) abort
+  let l:line = getline(a:lnum)
+
+  if s:is_blank_line(l:line)
+    return 0
+  endif
+
+  let l:info = s:get_list_item_info(l:line)
+
+  return empty(l:info) && indent(a:lnum) <= a:target_indent
 endfunction
 
 " s:get_list_items() {{{4
