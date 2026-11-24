@@ -1166,7 +1166,7 @@ endfunction
 function! s:continue_task_list_item(lnum) abort
   let l:line = getline(a:lnum)
 
-  if l:line !~# '^\s*-\s\+\[[ x]\]'
+  if l:line !~# '^\s*[-*+]\s\+\[[ x]\]'
     return ''
   endif
 
@@ -1210,10 +1210,10 @@ xnoremap <buffer> <Leader>mk<Space> :<C-u>'<,'>call <SID>md_set_task_list_items_
 
 " s:set_task_list_item_state() {{{4
 function! s:set_task_list_item_state(line, mark) abort
-  if a:line =~# '^\s*-\s*\[[ xX]\]'
+  if a:line =~# '^\s*[-*+]\s*\[[ xX]\]'
     return substitute(
           \ a:line,
-          \ '^\(\s*-\s*\)\[[ xX]\]',
+          \ '^\(\s*[-*+]\s*\)\[[ xX]\]',
           \ '\1[' . a:mark . ']',
           \ '')
   endif
@@ -1226,7 +1226,7 @@ endfunction
 function! s:md_toggle_task_list_items_state() range abort
   for l:lnum in range(a:firstline, a:lastline)
     let l:line = getline(l:lnum)
-    let l:mark = l:line =~# '^\s*-\s\+\[ \]' ? 'x' : ' '
+    let l:mark = l:line =~# '^\s*[-*+]\s\+\[ \]' ? 'x' : ' '
 
     call setline(
           \ l:lnum,
