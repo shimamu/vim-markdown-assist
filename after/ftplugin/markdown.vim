@@ -1254,8 +1254,7 @@ function! s:md_sort_task_list_items(recursive) range abort
   let l:start_lnum = l:range[0]
   let l:end_lnum = l:range[1]
 
-  let l:items = s:get_list_items(
-        \ l:start_lnum, l:end_lnum, l:indent)
+  let l:items = s:get_list_items(l:start_lnum, l:end_lnum)
 
   " Find the selected task list item.
   let l:selected_idx = -1
@@ -1416,8 +1415,9 @@ function! s:is_task_list_tree_boundary(lnum, target_indent) abort
 endfunction
 
 " s:get_list_items() {{{4
-function! s:get_list_items(start_lnum, end_lnum, target_indent) abort
+function! s:get_list_items(start_lnum, end_lnum) abort
   let l:items = []
+  let l:target_indent = indent(a:start_lnum)
   let l:lnum = a:start_lnum
 
   while l:lnum <= a:end_lnum
@@ -1430,11 +1430,11 @@ function! s:get_list_items(start_lnum, end_lnum, target_indent) abort
 
     let l:indent = indent(l:lnum)
 
-    if l:indent < a:target_indent
+    if l:indent < l:target_indent
       break
     endif
 
-    if l:indent > a:target_indent
+    if l:indent > l:target_indent
       let l:lnum += 1
       continue
     endif
@@ -1464,8 +1464,7 @@ endfunction
 function! s:sort_task_list_groups(
       \ start_lnum, end_lnum, indent, recursive) abort
 
-  let l:items = s:get_list_items(
-        \ a:start_lnum, a:end_lnum, a:indent)
+  let l:items = s:get_list_items(a:start_lnum, a:end_lnum)
 
   let l:run = []
 
@@ -1491,8 +1490,7 @@ function! s:sort_task_list_groups(
   endif
 
   " Sort nested task lists recursively.
-  let l:items = s:get_list_items(
-        \ a:start_lnum, a:end_lnum, a:indent)
+  let l:items = s:get_list_items(a:start_lnum, a:end_lnum)
 
   for l:item in l:items
     let l:child_indent = -1
