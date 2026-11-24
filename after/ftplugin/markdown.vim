@@ -1249,19 +1249,10 @@ function! s:md_sort_task_list_items(recursive) range abort
   endif
 
   let l:indent = indent(a:firstline)
-  let l:parent_lnum =
-        \ s:get_parent_list_item_lnum(a:firstline, l:indent)
 
-  " Determine the range of the parent task list.
-  if l:parent_lnum > 0
-    let l:start_lnum = l:parent_lnum + 1
-    let l:end_lnum =
-          \ s:get_list_item_tree_end_lnum(l:parent_lnum)
-  else
-    let l:range = s:get_list_block_range(a:firstline)
-    let l:start_lnum = l:range[0]
-    let l:end_lnum = l:range[1]
-  endif
+  let l:range = s:get_sibling_task_list_trees_range(a:firstline)
+  let l:start_lnum = l:range[0]
+  let l:end_lnum = l:range[1]
 
   let l:items = s:get_list_items(
         \ l:start_lnum, l:end_lnum, l:indent)
@@ -1375,8 +1366,8 @@ function! s:get_list_item_tree_end_lnum(start_lnum) abort
   return l:end_lnum
 endfunction
 
-" s:get_list_block_range() {{{4
-function! s:get_list_block_range(lnum) abort
+" s:get_sibling_task_list_trees_range() {{{4
+function! s:get_sibling_task_list_trees_range(lnum) abort
   let l:info = s:get_list_item_info(getline(a:lnum))
 
   if empty(l:info)
@@ -1389,7 +1380,7 @@ function! s:get_list_block_range(lnum) abort
 
   " Find the beginning of the list block.
   for l:lnum in reverse(range(1, a:lnum - 1))
-    if s:is_list_block_boundary(l:lnum, l:target_indent)
+    if s:is_task_list_tree_boundary(l:lnum, l:target_indent)
       let l:start_lnum = l:lnum + 1
       break
     endif
@@ -1397,7 +1388,7 @@ function! s:get_list_block_range(lnum) abort
 
   " Find the end of the list block.
   for l:lnum in range(a:lnum + 1, line('$'))
-    if s:is_list_block_boundary(l:lnum, l:target_indent)
+    if s:is_task_list_tree_boundary(l:lnum, l:target_indent)
       let l:end_lnum = l:lnum - 1
       break
     endif
@@ -1406,8 +1397,8 @@ function! s:get_list_block_range(lnum) abort
   return [l:start_lnum, l:end_lnum]
 endfunction
 
-" s:is_list_block_boundary() {{{4
-function! s:is_list_block_boundary(lnum, target_indent) abort
+" s:is_task_list_tree_boundary() {{{4
+function! s:is_task_list_tree_boundary(lnum, target_indent) abort
   let l:line = getline(a:lnum)
 
   if s:is_blank_line(l:line)
@@ -1416,7 +1407,12 @@ function! s:is_list_block_boundary(lnum, target_indent) abort
 
   let l:info = s:get_list_item_info(l:line)
 
-  return empty(l:info) && indent(a:lnum) <= a:target_indent
+  if empty(l:info) && indent(a:lnum) <= a:target_indent
+    return 1
+  elseif !empty(l:info) && l:info.is_task && indent(a:lnum) < a:target_indent
+    return 1
+  else
+    return 0
 endfunction
 
 " s:get_list_items() {{{4
