@@ -1319,7 +1319,7 @@ function! s:get_list_item_info(line) abort
 
   let l:task_match = matchlist(
         \ a:line,
-        \ '^\s*-\s\+\[\([ xX]\)\]\%(\s\|$\)')
+        \ '^\s*[-*+]\s\+\[\([ xX]\)\]\%(\s\|$\)')
 
   return {
         \ 'is_task': !empty(l:task_match),
