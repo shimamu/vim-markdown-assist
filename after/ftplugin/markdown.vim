@@ -1321,27 +1321,6 @@ function! s:get_list_item_info(line) abort
         \ }
 endfunction
 
-" s:get_parent_list_item_lnum() {{{4
-function! s:get_parent_list_item_lnum(lnum, indent) abort
-  if a:indent == 0
-    return 0
-  endif
-
-  for l:lnum in reverse(range(1, a:lnum - 1))
-    let l:info = s:get_list_item_info(getline(l:lnum))
-
-    if empty(l:info)
-      continue
-    endif
-
-    if indent(l:lnum) < a:indent
-      return l:lnum
-    endif
-  endfor
-
-  return 0
-endfunction
-
 " s:get_list_item_tree_end_lnum() {{{4
 function! s:get_list_item_tree_end_lnum(start_lnum) abort
   let l:base_indent = indent(a:start_lnum)
