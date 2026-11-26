@@ -1466,23 +1466,23 @@ function! s:sort_task_list_groups(
 
   let l:items = s:get_list_items(a:start_lnum, a:end_lnum)
 
-  let l:run = []
+  let l:task_group = []
 
   " Sort task items in independent groups.
   for l:item in l:items
     if l:item.is_task
-      call add(l:run, l:item)
+      call add(l:task_group, l:item)
       continue
     endif
 
-    if !empty(l:run)
-      call s:sort_task_list_item_group(l:run)
-      let l:run = []
+    if !empty(l:task_group)
+      call s:sort_task_list_item_group(l:task_group)
+      let l:task_group = []
     endif
   endfor
 
-  if !empty(l:run)
-    call s:sort_task_list_item_group(l:run)
+  if !empty(l:task_group)
+    call s:sort_task_list_item_group(l:task_group)
   endif
 
   if !a:recursive
