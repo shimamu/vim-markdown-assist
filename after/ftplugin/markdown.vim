@@ -1404,7 +1404,7 @@ function! s:is_task_list_tree_boundary(lnum, target_indent) abort
 
   let l:info = s:get_list_item_info(l:line)
 
-  if empty(l:info) && indent(a:lnum) <= a:target_indent
+  if indent(a:lnum) <= a:target_indent && (empty(l:info) || !l:info.is_task)
     return 1
   elseif !empty(l:info) && l:info.is_task && indent(a:lnum) < a:target_indent
     return 1
