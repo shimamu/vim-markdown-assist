@@ -1292,6 +1292,10 @@ function! s:md_sort_task_list_items(recursive) range abort
         \ l:group_end,
         \ l:indent,
         \ a:recursive)
+
+  call s:move_blank_lines_to_end(
+      \ l:group_start,
+      \ l:group_end)
 endfunction
 
 nnoremap <buffer> <Leader>mks :<C-u>call <SID>md_sort_task_list_items(0)<CR>
@@ -1355,12 +1359,6 @@ function! s:get_list_item_tree_end_lnum(start_lnum) abort
       break
     endif
   endfor
-
-  " Exclude trailing blank lines from the list item tree.
-  while l:end_lnum > a:start_lnum
-        \ && s:is_blank_line(getline(l:end_lnum))
-    let l:end_lnum -= 1
-  endwhile
 
   return l:end_lnum
 endfunction
@@ -1536,6 +1534,20 @@ function! s:sort_task_list_item_group(items) abort
   endfor
 
   call setline(a:items[0].start_lnum, l:lines)
+endfunction
+
+" s:move_blank_lines_to_end() {{{4
+function! s:move_blank_lines_to_end(start_lnum, end_lnum) abort
+  let l:lines = getline(a:start_lnum, a:end_lnum)
+  let l:blank_lines = filter(
+        \ copy(l:lines),
+        \ 's:is_blank_line(v:val)')
+  let l:lines = filter(
+        \ l:lines,
+        \ '!s:is_blank_line(v:val)')
+
+  call extend(l:lines, l:blank_lines)
+  call setline(a:start_lnum, l:lines)
 endfunction
 
 " feat: task list items sorting (recursive) (normal mode) {{{3
