@@ -1407,13 +1407,13 @@ function! s:get_list_items(start_lnum, end_lnum) abort
 
   while l:lnum <= a:end_lnum
     let l:line = getline(l:lnum)
-    let l:info = s:get_list_item_info(l:line)
+    let l:list_item_info = s:get_list_item_info(l:line)
 
     if l:target_indent < 0 && !s:is_blank_line(l:line)
       let l:target_indent = indent(l:lnum)
     endif
 
-    if empty(l:info)
+    if empty(l:list_item_info)
       let l:lnum += 1
       continue
     endif
@@ -1424,7 +1424,7 @@ function! s:get_list_items(start_lnum, end_lnum) abort
       break
     endif
 
-    if l:indent > l:target_indent
+    if l:target_indent < l:indent
       let l:lnum += 1
       continue
     endif
@@ -1434,8 +1434,8 @@ function! s:get_list_items(start_lnum, end_lnum) abort
     call add(l:items, {
           \ 'start_lnum': l:lnum,
           \ 'end_lnum': l:end_lnum,
-          \ 'is_task': l:info.is_task,
-          \ 'is_done': l:info.is_done,
+          \ 'is_task': l:list_item_info.is_task,
+          \ 'is_done': l:list_item_info.is_done,
           \ 'lines': getline(l:lnum, l:end_lnum)
           \ })
 
