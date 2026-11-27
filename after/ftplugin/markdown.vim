@@ -1239,18 +1239,19 @@ xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_items_sta
 
 " feat: task list items sorting (non-recursive) (normal mode) {{{3
 " s:md_sort_task_list_items() {{{4
-function! s:md_sort_task_list_items(recursive) range abort
-  let l:line = getline(a:firstline)
+function! s:md_sort_task_list_items(recursive) abort
+  let l:lnum = line('.')
+  let l:line = getline(l:lnum)
   let l:info = s:get_list_item_info(l:line)
 
-  " Do nothing unless the first selected line is a task list item.
+  " Do nothing unless the cursor is on a task list item.
   if empty(l:info) || !l:info.is_task
     return
   endif
 
-  let l:indent = indent(a:firstline)
+  let l:indent = indent(l:lnum)
 
-  let l:range = s:get_sibling_task_list_trees_range(a:firstline)
+  let l:range = s:get_sibling_task_list_trees_range(l:lnum)
   let l:start_lnum = l:range[0]
   let l:end_lnum = l:range[1]
 
@@ -1260,7 +1261,7 @@ function! s:md_sort_task_list_items(recursive) range abort
   let l:selected_idx = -1
 
   for l:i in range(0, len(l:items) - 1)
-    if l:items[l:i].start_lnum == a:firstline
+    if l:items[l:i].start_lnum == l:lnum
       let l:selected_idx = l:i
       break
     endif
