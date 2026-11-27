@@ -1485,9 +1485,9 @@ function! s:sort_task_list_groups(
 
     for l:lnum in range(l:item.start_lnum + 1, l:item.end_lnum)
 
-      let l:info = s:get_list_item_info(getline(l:lnum))
+      let l:list_item_info = s:get_list_item_info(getline(l:lnum))
 
-      if empty(l:info)
+      if empty(l:list_item_info)
         continue
       endif
 
