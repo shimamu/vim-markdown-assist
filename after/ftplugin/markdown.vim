@@ -1442,11 +1442,6 @@ function! s:get_list_items(start_lnum, end_lnum) abort
   return l:items
 endfunction
 
-" s:compare_task_list_items() {{{4
-function! s:compare_task_list_items(item1, item2) abort
-  return a:item1.is_done - a:item2.is_done
-endfunction
-
 " s:sort_task_list_groups() {{{4
 function! s:sort_task_list_groups(
       \ start_lnum, end_lnum, recursive) abort
@@ -1521,6 +1516,11 @@ function! s:sort_task_list_item_group(items) abort
   endfor
 
   call setline(a:items[0].start_lnum, l:lines)
+endfunction
+
+" s:compare_task_list_items() {{{4
+function! s:compare_task_list_items(item1, item2) abort
+  return a:item1.is_done - a:item2.is_done
 endfunction
 
 " feat: task list items sorting (recursive) (normal mode) {{{3
