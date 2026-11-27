@@ -1303,22 +1303,21 @@ nnoremap <buffer> <Leader>mks :<C-u>call <SID>md_sort_task_list_items(0)<CR>
 
 " s:get_list_item_info() {{{4
 function! s:get_list_item_info(line) abort
-  let l:match = matchlist(
+  let l:list_item_match = matchlist(
         \ a:line,
         \ '^\(\s*\)\([-*+]\|\d\+[.)]\)\s\+')
 
-  if empty(l:match)
+  if empty(l:list_item_match)
     return {}
   endif
 
-  let l:task_match = matchlist(
+  let l:task_list_item_match = matchlist(
         \ a:line,
         \ '^\s*[-*+]\s\+\[\([ xX]\)\]\%(\s\|$\)')
 
   return {
-        \ 'is_task': !empty(l:task_match),
-        \ 'is_done': !empty(l:task_match)
-        \   && l:task_match[1] =~# '[xX]'
+        \ 'is_task': !empty(l:task_list_item_match),
+        \ 'is_done': !empty(l:task_list_item_match) && l:task_list_item_match[1] =~# '[xX]'
         \ }
 endfunction
 
