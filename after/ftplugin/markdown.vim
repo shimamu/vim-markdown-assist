@@ -1293,10 +1293,6 @@ function! s:md_sort_task_list_items(recursive) abort
         \ l:group_end,
         \ l:indent,
         \ a:recursive)
-
-  call s:move_blank_lines_to_end(
-      \ l:group_start,
-      \ l:group_end)
 endfunction
 
 nnoremap <buffer> <Leader>mks :<C-u>call <SID>md_sort_task_list_items(0)<CR>
@@ -1325,6 +1321,7 @@ endfunction
 function! s:get_list_item_tree_end_lnum(start_lnum) abort
   let l:base_indent = indent(a:start_lnum)
   let l:end_lnum = line('$')
+  let l:next_is_list_item = 0
 
   for l:lnum in range(a:start_lnum + 1, line('$'))
     let l:line = getline(l:lnum)
@@ -1335,9 +1332,18 @@ function! s:get_list_item_tree_end_lnum(start_lnum) abort
 
     if indent(l:lnum) <= l:base_indent
       let l:end_lnum = l:lnum - 1
+      let l:next_is_list_item =
+            \ !empty(s:get_list_item_info(l:line))
       break
     endif
   endfor
+
+  if !l:next_is_list_item
+    while l:end_lnum > a:start_lnum
+          \ && s:is_blank_line(getline(l:end_lnum))
+      let l:end_lnum -= 1
+    endwhile
+  endif
 
   return l:end_lnum
 endfunction
