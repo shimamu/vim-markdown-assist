@@ -1526,20 +1526,6 @@ function! s:sort_task_list_item_group(items) abort
   call setline(a:items[0].start_lnum, l:lines)
 endfunction
 
-" s:move_blank_lines_to_end() {{{4
-function! s:move_blank_lines_to_end(start_lnum, end_lnum) abort
-  let l:lines = getline(a:start_lnum, a:end_lnum)
-  let l:blank_lines = filter(
-        \ copy(l:lines),
-        \ 's:is_blank_line(v:val)')
-  let l:lines = filter(
-        \ l:lines,
-        \ '!s:is_blank_line(v:val)')
-
-  call extend(l:lines, l:blank_lines)
-  call setline(a:start_lnum, l:lines)
-endfunction
-
 " feat: task list items sorting (recursive) (normal mode) {{{3
 nnoremap <buffer> <Leader>mkS :<C-u>call <SID>md_sort_task_list_items(1)<CR>
 
