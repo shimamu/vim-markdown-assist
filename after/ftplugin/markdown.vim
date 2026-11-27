@@ -25,39 +25,68 @@ setlocal formatoptions+=n
 " GFM Spec 4. Leaf blocks {{{1
 " 4.2 ATX headings {{{2
 " feat: heading insertion (normal mode) {{{3
-" s:md_insert_heading(level) {{{4
-function! s:md_insert_heading(level) abort
-  if a:level < 1 || a:level > 6
-    return
-  endif
-
+" s:md_insert_heading() {{{4
+function! s:md_insert_heading(count) abort
   let l:line = getline('.')
+  let l:col = col('.')
+  let l:current_level = strlen(matchstr(l:line, '^#\+'))
 
-  " Remove existing header marks
+  let l:next_level = min([6, l:current_level + a:count])
+
+  let l:current_mark_len = strlen(matchstr(l:line, '^#\+\s*'))
   let l:line = substitute(l:line, '^#\+\s*', '', '')
-
-  " Add specified number of header marks
-  let l:line = repeat('#', a:level) . ' ' . l:line
+  let l:line = repeat('#', l:next_level) . ' ' . l:line
 
   call setline('.', l:line)
+  call cursor(line('.'), l:col - l:current_mark_len + l:next_level + 1)
 endfunction
 
-nnoremap <buffer> <Leader>mhi1 :<C-u>call <SID>md_insert_heading(1)<CR>
-nnoremap <buffer> <Leader>mhi2 :<C-u>call <SID>md_insert_heading(2)<CR>
-nnoremap <buffer> <Leader>mhi3 :<C-u>call <SID>md_insert_heading(3)<CR>
-nnoremap <buffer> <Leader>mhi4 :<C-u>call <SID>md_insert_heading(4)<CR>
-nnoremap <buffer> <Leader>mhi5 :<C-u>call <SID>md_insert_heading(5)<CR>
-nnoremap <buffer> <Leader>mhi6 :<C-u>call <SID>md_insert_heading(6)<CR>
+nnoremap <buffer> <Leader>mhi :<C-u>call <SID>md_insert_heading(v:count1)<CR>
 
 " feat: heading unwrapping (normal mode) {{{3
 " s:md_unwrap_heading() {{{4
-function! s:md_unwrap_heading() abort
+function! s:md_unwrap_heading(count) abort
   let l:line = getline('.')
+  let l:col = col('.')
+  let l:current_level = strlen(matchstr(l:line, '^#\+'))
+
+  if l:current_level == 0
+    return
+  endif
+
+  let l:next_level = max([0, l:current_level - a:count])
+
+  let l:current_mark_len = strlen(matchstr(l:line, '^#\+\s*'))
   let l:line = substitute(l:line, '^#\+\s*', '', '')
+  let l:space_len = 0
+  if l:next_level > 0
+    let l:line = repeat('#', l:next_level) . ' ' . l:line
+    let l:space_len = 1
+  endif
+
   call setline('.', l:line)
+  call cursor(line('.'), l:col - l:current_mark_len + l:next_level + l:space_len)
 endfunction
 
-nnoremap <buffer> <Leader>mhu :<C-u>call <SID>md_unwrap_heading()<CR>
+nnoremap <buffer> <Leader>mhu :<C-u>call <SID>md_unwrap_heading(v:count1)<CR>
+
+" feat: heading deletion (normal mode) {{{3
+" s:md_delete_heading() {{{4
+function! s:md_delete_heading() abort
+  let l:line = getline('.')
+  let l:col = col('.')
+  let l:current_mark_len = strlen(matchstr(l:line, '^#\+\s*'))
+
+  if l:current_mark_len == 0
+    return
+  endif
+
+  let l:line = substitute(l:line, '^#\+\s*', '', '')
+  call setline('.', l:line)
+  call cursor(line('.'), l:col - l:current_mark_len)
+endfunction
+
+nnoremap <buffer> <Leader>mhd :<C-u>call <SID>md_delete_heading()<CR>
 
 " 4.5 Fenced code blocks {{{2
 " feat: fenced code block wrapping (normal/visual mode) {{{3
