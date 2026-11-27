@@ -1344,9 +1344,9 @@ endfunction
 
 " s:get_sibling_task_list_trees_range() {{{4
 function! s:get_sibling_task_list_trees_range(lnum) abort
-  let l:info = s:get_list_item_info(getline(a:lnum))
+  let l:list_item_info = s:get_list_item_info(getline(a:lnum))
 
-  if empty(l:info)
+  if empty(l:list_item_info)
     return []
   endif
 
