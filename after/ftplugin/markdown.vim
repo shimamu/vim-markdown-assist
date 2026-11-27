@@ -1249,8 +1249,6 @@ function! s:md_sort_task_list_items(recursive) abort
     return
   endif
 
-  let l:indent = indent(l:lnum)
-
   let l:range = s:get_sibling_task_list_trees_range(l:lnum)
   let l:start_lnum = l:range[0]
   let l:end_lnum = l:range[1]
@@ -1291,7 +1289,6 @@ function! s:md_sort_task_list_items(recursive) abort
   call s:sort_task_list_groups(
         \ l:group_start,
         \ l:group_end,
-        \ l:indent,
         \ a:recursive)
 endfunction
 
@@ -1452,7 +1449,7 @@ endfunction
 
 " s:sort_task_list_groups() {{{4
 function! s:sort_task_list_groups(
-      \ start_lnum, end_lnum, indent, recursive) abort
+      \ start_lnum, end_lnum, recursive) abort
 
   let l:items = s:get_list_items(a:start_lnum, a:end_lnum)
 
@@ -1483,10 +1480,10 @@ function! s:sort_task_list_groups(
   let l:items = s:get_list_items(a:start_lnum, a:end_lnum)
 
   for l:item in l:items
+    let l:parent_indent = indent(l:item.start_lnum)
     let l:child_indent = -1
 
-    for l:lnum in range(
-          \ l:item.start_lnum + 1, l:item.end_lnum)
+    for l:lnum in range(l:item.start_lnum + 1, l:item.end_lnum)
 
       let l:info = s:get_list_item_info(getline(l:lnum))
 
@@ -1496,18 +1493,16 @@ function! s:sort_task_list_groups(
 
       let l:indent = indent(l:lnum)
 
-      if l:indent > a:indent
-            \ && (l:child_indent < 0
-            \ || l:indent < l:child_indent)
+      if l:parent_indent < l:indent
+            \ && (l:child_indent < 0 || l:indent < l:child_indent)
         let l:child_indent = l:indent
       endif
     endfor
 
-    if l:child_indent >= 0
+    if 0 <= l:child_indent
       call s:sort_task_list_groups(
             \ l:item.start_lnum + 1,
             \ l:item.end_lnum,
-            \ l:child_indent,
             \ 1)
     endif
   endfor
