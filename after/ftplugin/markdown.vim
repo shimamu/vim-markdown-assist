@@ -1387,14 +1387,16 @@ function! s:is_task_list_tree_boundary(lnum, target_indent) abort
     return 0
   endif
 
-  let l:info = s:get_list_item_info(l:line)
+  let l:indent = indent(a:lnum)
+  let l:list_item_info = s:get_list_item_info(l:line)
 
-  if indent(a:lnum) <= a:target_indent && (empty(l:info) || !l:info.is_task)
+  if l:indent <= a:target_indent && (empty(l:list_item_info) || !l:list_item_info.is_task)
     return 1
-  elseif !empty(l:info) && l:info.is_task && indent(a:lnum) < a:target_indent
+  elseif l:indent < a:target_indent && !empty(l:list_item_info) && l:list_item_info.is_task
     return 1
-  else
-    return 0
+  endif
+
+  return 0
 endfunction
 
 " s:get_list_items() {{{4
