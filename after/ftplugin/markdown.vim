@@ -1394,11 +1394,16 @@ endfunction
 " s:get_list_items() {{{4
 function! s:get_list_items(start_lnum, end_lnum) abort
   let l:items = []
-  let l:target_indent = indent(a:start_lnum)
+  let l:target_indent = -1
   let l:lnum = a:start_lnum
 
   while l:lnum <= a:end_lnum
-    let l:info = s:get_list_item_info(getline(l:lnum))
+    let l:line = getline(l:lnum)
+    let l:info = s:get_list_item_info(l:line)
+
+    if l:target_indent < 0 && !s:is_blank_line(l:line)
+      let l:target_indent = indent(l:lnum)
+    endif
 
     if empty(l:info)
       let l:lnum += 1
