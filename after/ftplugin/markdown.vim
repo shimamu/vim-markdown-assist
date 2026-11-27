@@ -1242,10 +1242,10 @@ xnoremap <buffer> <Leader>mkt :<C-u>'<,'>call <SID>md_toggle_task_list_items_sta
 function! s:md_sort_task_list_items(recursive) abort
   let l:lnum = line('.')
   let l:line = getline(l:lnum)
-  let l:info = s:get_list_item_info(l:line)
+  let l:list_item_info = s:get_list_item_info(l:line)
 
   " Do nothing unless the cursor is on a task list item.
-  if empty(l:info) || !l:info.is_task
+  if empty(l:list_item_info) || !l:list_item_info.is_task
     return
   endif
 
