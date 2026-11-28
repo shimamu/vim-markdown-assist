@@ -226,21 +226,25 @@ endfunction
 function! s:convert_csv_to_table(start_lnum, end_lnum)
   let l:lines = getline(a:start_lnum, a:end_lnum)
   let l:table = []
+  let l:has_previous_table = a:start_lnum > 1
+        \ && s:is_table_line(a:start_lnum - 1)
 
   for l:line in l:lines
     let l:line = substitute(l:line, '\s*,\s*', ' | ', 'g')
     call add(l:table, '| ' . l:line . ' |')
   endfor
 
-  " Insert a centered alignment row after the first row.
-  let l:column_count = len(split(l:lines[0], ',', 1))
-  let l:separator = repeat([s:MD_ALIGNMENT_CENTER], l:column_count)
-  call insert(l:table, s:build_table_row(l:separator), 1)
+  if !l:has_previous_table
+    " Insert a centered alignment row after the first row.
+    let l:column_count = len(split(l:lines[0], ',', 1))
+    let l:separator = repeat([s:MD_ALIGNMENT_CENTER], l:column_count)
+    call insert(l:table, s:build_table_row(l:separator), 1)
 
-  " Add an empty data row when only one row is selected.
-  if len(l:lines) == 1
-    let l:blank_cells = repeat([''], l:column_count)
-    call add(l:table, s:build_table_row(l:blank_cells))
+    " Add an empty data row when only one row is selected.
+    if len(l:lines) == 1
+      let l:blank_cells = repeat([''], l:column_count)
+      call add(l:table, s:build_table_row(l:blank_cells))
+    endif
   endif
 
   call s:replace_lines(a:start_lnum, a:end_lnum, l:table)
@@ -693,12 +697,12 @@ function! s:md_table_delete_column() abort
 
   " Move the cursor to the remaining column.
   let l:target_column_idx = max([
-      \ min([
+        \ min([
         \ l:column_idx,
         \ l:column_count - 2,
         \ ]),
-      \ 0,
-      \ ])
+        \ 0,
+        \ ])
 
   let l:target_line = getline(l:lnum)
   let l:boundary_col = 0
