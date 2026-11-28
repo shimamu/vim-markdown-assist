@@ -187,15 +187,15 @@ let &l:completefunc = expand('<SID>') . 'md_insert_link_label'
 inoremap <buffer> <C-l> <C-x><C-u>
 
 " 4.10 Tables (extension) {{{2
-" feat: convert text and CSV to Markdown table and format it (normal/visual mode) {{{3
+" feat: table wrapping (normal/visual mode) {{{3
 " constants {{{4
 const s:MD_ALIGNMENT_LEFT = ':-'
 const s:MD_ALIGNMENT_CENTER = ':-:'
 const s:MD_ALIGNMENT_RIGHT = '-:'
 const s:MD_ALIGNMENT_NONE = '-'
 
-" s:md_table_convert() {{{4
-function! s:md_table_convert(...) range
+" s:md_table_wrap() {{{4
+function! s:md_table_wrap(...) range
   if s:is_table_line(line('.'))
     call s:format_table()
     return
@@ -214,8 +214,8 @@ function! s:md_table_convert(...) range
   call s:format_table()
 endfunction
 
-nnoremap <buffer> <Leader>mtf :<C-u>call <SID>md_table_convert()<CR>
-xnoremap <buffer> <Leader>mtf :<C-u>call <SID>md_table_convert(line("'<"), line("'>"))<CR>
+nnoremap <buffer> <Leader>mtw :<C-u>call <SID>md_table_wrap()<CR>
+xnoremap <buffer> <Leader>mtw :<C-u>call <SID>md_table_wrap(line("'<"), line("'>"))<CR>
 
 " s:is_table_line() {{{4
 function! s:is_table_line(lnum)
@@ -401,6 +401,13 @@ function! s:get_alignment(cell)
 
   return s:MD_ALIGNMENT_NONE
 endfunction
+
+" feat: table formatting (normal mode) {{{3
+function! s:md_table_format(...)
+  call s:format_table()
+endfunction
+
+nnoremap <buffer> <Leader>mtf :<C-u>call <SID>md_table_format()<CR>
 
 " feat: table column insertion (normal mode) {{{3
 " s:md_table_add_column() {{{4
