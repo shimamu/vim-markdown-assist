@@ -622,6 +622,96 @@ function! s:get_last_cell_idx(table_row_info) abort
   return len(a:table_row_info.boundary_cols) - 2
 endfunction
 
+" feat: table column deletion (normal mode) {{{3
+" s:md_table_delete_column() {{{4
+function! s:md_table_delete_column() abort
+  if !s:is_table_line(line('.'))
+    return
+  endif
+
+  let l:lnum = line('.')
+  let l:prefix = strpart(getline('.'), 0, col('.') - 1)
+  let l:column_idx = max([
+        \ 0,
+        \ count(split(l:prefix, '\zs'), '|') - 1,
+        \ ])
+
+  " Fill missing cells before removing a column.
+  call s:format_table()
+
+  let [l:start_lnum, l:end_lnum] = s:get_table_range(l:lnum)
+  let l:lines = getline(l:start_lnum, l:end_lnum)
+  let l:column_count = len(s:parse_table_row(l:lines[0]))
+
+  " Handle the last remaining column.
+  if l:column_count == 1
+    let l:has_content = 0
+
+    for l:line in l:lines
+      let l:cells = s:parse_table_row(l:line)
+
+      if !s:is_separator_row(l:cells) && !empty(trim(l:cells[0]))
+        let l:has_content = 1
+        break
+      endif
+    endfor
+
+    " Remove the entire table when all cells are empty.
+    if !l:has_content
+      call deletebufline('%', l:start_lnum, l:end_lnum)
+      call cursor(min([l:start_lnum, line('$')]), 1)
+      return
+    endif
+
+    " Clear all cells while preserving the table structure.
+    let l:formatted = []
+
+    for l:line in l:lines
+      let l:cells = s:parse_table_row(l:line)
+
+      if !s:is_separator_row(l:cells)
+        let l:cells[0] = ''
+      endif
+
+      call add(l:formatted, s:build_table_row(l:cells))
+    endfor
+  else
+    " Remove the specified column from every row.
+    let l:formatted = []
+
+    for l:line in l:lines
+      let l:cells = s:parse_table_row(l:line)
+      call remove(l:cells, l:column_idx)
+      call add(l:formatted, s:build_table_row(l:cells))
+    endfor
+  endif
+
+  call s:replace_lines(l:start_lnum, l:end_lnum, l:formatted)
+
+  call cursor(l:lnum, 1)
+  call s:format_table()
+
+  " Move the cursor to the remaining column.
+  let l:target_column_idx = max([
+      \ min([
+        \ l:column_idx,
+        \ l:column_count - 2,
+        \ ]),
+      \ 0,
+      \ ])
+
+  let l:target_line = getline(l:lnum)
+  let l:boundary_col = 0
+
+  for l:i in range(l:target_column_idx + 1)
+    let l:boundary_col = match(l:target_line, '|', l:boundary_col) + 1
+  endfor
+
+  call cursor(l:lnum, l:boundary_col + 2)
+endfunction
+
+nnoremap <buffer> <Leader>mtd :<C-u>call <SID>md_table_delete_column()<CR>
+
 " GFM Spec 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
 " feat: block quote continuation {{{3
