@@ -464,6 +464,84 @@ endfunction
 execute 'nnoremap <buffer> <Leader>mtal :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_RIGHT) . ')<CR>'
 execute 'nnoremap <buffer> <Leader>mtah :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_LEFT) . ')<CR>'
 
+" feat: table column movement (normal mode) {{{3
+" s:md_table_move_column() {{{4
+function! s:md_table_move_column(direction) abort
+  if !s:is_table_line(line('.'))
+    return
+  endif
+
+  let l:line = getline('.')
+
+  if strpart(l:line, col('.') - 1, 1) ==# '|'
+    return
+  endif
+
+  let l:lnum = line('.')
+  let l:prefix = strpart(l:line, 0, col('.') - 1)
+  let l:column_idx = max([
+        \ 0,
+        \ count(split(l:prefix, '\zs'), '|') - 1,
+        \ ])
+
+  let [l:start_lnum, l:end_lnum] = s:get_table_range(l:lnum)
+  let l:column_count = len(s:parse_table_row(getline(l:start_lnum)))
+  let l:target_column_idx = l:column_idx + a:direction
+
+  " Do nothing if the column is already at the corresponding edge.
+  if l:target_column_idx < 0
+        \ || l:column_count <= l:target_column_idx
+    return
+  endif
+
+  " Save the cursor offset from the cell content start.
+  let l:cell_start_col = match(l:line, '|', 0) + 1
+
+  for l:i in range(l:column_idx)
+    let l:cell_start_col = match(l:line, '|', l:cell_start_col) + 1
+  endfor
+
+  let l:cell_content_start_col = l:cell_start_col
+  let l:cell_content_start_col += strlen(matchstr(
+        \ strpart(l:line, l:cell_start_col), '^\s*'))
+
+  let l:cursor_offset = max([col('.') - l:cell_content_start_col, 1])
+
+  " Fill missing cells before moving a column.
+  call s:format_table()
+
+  let [l:start_lnum, l:end_lnum] = s:get_table_range(l:lnum)
+  let l:lines = getline(l:start_lnum, l:end_lnum)
+
+  " Swap adjacent columns in every row.
+  let l:swapped_lines = []
+
+  for l:line in l:lines
+    let l:cells = s:parse_table_row(l:line)
+    let l:cell = l:cells[l:column_idx]
+    let l:cells[l:column_idx] = l:cells[l:target_column_idx]
+    let l:cells[l:target_column_idx] = l:cell
+    call add(l:swapped_lines, s:build_table_row(l:cells))
+  endfor
+
+  call s:replace_lines(l:start_lnum, l:end_lnum, l:swapped_lines)
+  call cursor(l:lnum, 1)
+  call s:format_table()
+
+  " Restore the cursor position within the moved cell.
+  let l:target_line = getline(l:lnum)
+  let l:cell_start_col = match(l:target_line, '|', 0) + 1
+
+  for l:i in range(l:target_column_idx)
+    let l:cell_start_col = match(l:target_line, '|', l:cell_start_col) + 1
+  endfor
+
+  call cursor(l:lnum, l:cell_start_col + 1 + l:cursor_offset)
+endfunction
+
+nnoremap <buffer> <Leader>mtmh :<C-u>call <SID>md_table_move_column(-1)<CR>
+nnoremap <buffer> <Leader>mtml :<C-u>call <SID>md_table_move_column(1)<CR>
+
 " feat: table cell navigation (normal mode) {{{3
 " s:md_move_cursor_table_cell() {{{4
 function! s:md_move_cursor_table_cell(direction) abort
