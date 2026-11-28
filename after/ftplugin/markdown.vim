@@ -454,13 +454,35 @@ execute 'nnoremap <buffer> <Leader>mtal :<C-u>call <SID>md_table_add_column(' . 
 execute 'nnoremap <buffer> <Leader>mtah :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_LEFT) . ')<CR>'
 
 " feat: table cell navigation (normal mode) {{{3
-" s:md_table_move_cursor_cell() {{{4
-function! s:md_table_move_cursor_cell(direction) abort
+" s:md_move_cursor_table_cell() {{{4
+function! s:md_move_cursor_table_cell(direction) abort
   if !s:is_table_line(line('.'))
     return 0 < a:direction ? "\<Tab>" : "\<S-Tab>"
   endif
 
-  let [l:start_lnum, l:end_lnum] = s:get_table_range(line('.'))
+  let l:target_lnum = line('.')
+  let l:target_col = col('.')
+
+  for l:i in range(v:count1)
+    let l:target_cell_pos = s:get_adjacent_table_cell_position(l:target_lnum, l:target_col, a:direction)
+
+    if empty(l:target_cell_pos)
+      break
+    endif
+
+    let l:target_lnum = l:target_cell_pos[0]
+    let l:target_col = l:target_cell_pos[1]
+  endfor
+
+  return "\<Cmd>call cursor(" . l:target_lnum . ", " . l:target_col . ")\<CR>"
+endfunction
+
+nnoremap <buffer> <expr> <Tab> <SID>md_move_cursor_table_cell(1)
+nnoremap <buffer> <expr> <S-Tab> <SID>md_move_cursor_table_cell(-1)
+
+" s:get_adjacent_table_cell_position() {{{4
+function! s:get_adjacent_table_cell_position(lnum, col, direction) abort
+  let [l:start_lnum, l:end_lnum] = s:get_table_range(a:lnum)
   let l:table_row_infos = []
 
   " Collect data rows and their cell boundaries.
@@ -497,14 +519,14 @@ function! s:md_table_move_cursor_cell(direction) abort
   endfor
 
   if empty(l:table_row_infos)
-    return ''
+    return []
   endif
 
   " Find the current row.
   let l:current_row_idx = -1
 
   for l:i in range(len(l:table_row_infos))
-    if l:table_row_infos[l:i].lnum == line('.')
+    if l:table_row_infos[l:i].lnum == a:lnum
       let l:current_row_idx = l:i
       break
     endif
@@ -516,7 +538,7 @@ function! s:md_table_move_cursor_cell(direction) abort
   if l:current_row_idx < 0
     if 0 < a:direction
       for l:i in range(len(l:table_row_infos))
-        if line('.') < l:table_row_infos[l:i].lnum
+        if a:lnum < l:table_row_infos[l:i].lnum
           let l:target_row_idx = l:i
           break
         endif
@@ -525,7 +547,7 @@ function! s:md_table_move_cursor_cell(direction) abort
       let l:target_cell_idx = 0
     else
       for l:i in reverse(range(len(l:table_row_infos)))
-        if l:table_row_infos[l:i].lnum < line('.')
+        if l:table_row_infos[l:i].lnum < a:lnum
           let l:target_row_idx = l:i
           break
         endif
@@ -537,7 +559,7 @@ function! s:md_table_move_cursor_cell(direction) abort
     endif
 
     if l:target_row_idx < 0
-      return ''
+      return []
     endif
   else
     " Find the current cell.
@@ -547,7 +569,7 @@ function! s:md_table_move_cursor_cell(direction) abort
     let l:current_cell_idx = l:cell_count - 1
 
     for l:i in range(l:cell_count)
-      if col('.') <= l:boundary_cols[l:i + 1]
+      if a:col <= l:boundary_cols[l:i + 1]
         let l:current_cell_idx = l:i
         break
       endif
@@ -560,7 +582,7 @@ function! s:md_table_move_cursor_cell(direction) abort
       let l:target_row_idx -= 1
 
       if l:target_row_idx < 0
-        return ''
+        return []
       endif
 
       let l:target_cell_idx = s:get_last_cell_idx(l:table_row_infos[l:target_row_idx])
@@ -568,7 +590,7 @@ function! s:md_table_move_cursor_cell(direction) abort
       let l:target_row_idx += 1
 
       if len(l:table_row_infos) <= l:target_row_idx
-        return ''
+        return []
       endif
 
       let l:target_cell_idx = 0
@@ -585,18 +607,15 @@ function! s:md_table_move_cursor_cell(direction) abort
         \ l:start_col - 1,
         \ l:end_col - l:start_col,
         \ )
-  let l:leading = matchend(l:text, '^\s*')
-  let l:target_col = l:start_col + l:leading
+  let l:leading_whitespace = matchend(l:text, '^\s*')
+  let l:target_col = l:start_col + l:leading_whitespace
 
   if l:end_col <= l:target_col
     let l:target_col = l:start_col
   endif
 
-  return "\<Cmd>call cursor(" . l:target_row_info.lnum . ", " . l:target_col . ")\<CR>"
+  return [l:target_row_info.lnum, l:target_col]
 endfunction
-
-nnoremap <buffer> <expr> <Tab> <SID>md_table_move_cursor_cell(1)
-nnoremap <buffer> <expr> <S-Tab> <SID>md_table_move_cursor_cell(-1)
 
 " s:get_last_cell_idx() {{{4
 function! s:get_last_cell_idx(table_row_info) abort
