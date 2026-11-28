@@ -453,6 +453,156 @@ endfunction
 execute 'nnoremap <buffer> <Leader>mtal :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_RIGHT) . ')<CR>'
 execute 'nnoremap <buffer> <Leader>mtah :<C-u>call <SID>md_table_add_column(' . string(s:MD_ALIGNMENT_LEFT) . ')<CR>'
 
+" feat: table cell navigation (normal mode) {{{3
+" s:md_table_move_cursor_cell() {{{4
+function! s:md_table_move_cursor_cell(direction) abort
+  if !s:is_table_line(line('.'))
+    return 0 < a:direction ? "\<Tab>" : "\<S-Tab>"
+  endif
+
+  let [l:start_lnum, l:end_lnum] = s:get_table_range(line('.'))
+  let l:table_row_infos = []
+
+  " Collect data rows and their cell boundaries.
+  for l:lnum in range(l:start_lnum, l:end_lnum)
+    let l:text = getline(l:lnum)
+    let l:cells = s:parse_table_row(l:text)
+
+    if s:is_separator_row(l:cells)
+      continue
+    endif
+
+    let l:boundary_cols = []
+    let l:boundary_col = 0
+
+    while 1
+      let l:next_boundary_byte = match(l:text, '|', l:boundary_col)
+
+      if l:next_boundary_byte < 0
+        break
+      endif
+
+      let l:boundary_col = l:next_boundary_byte + 1
+      call add(l:boundary_cols, l:boundary_col)
+    endwhile
+
+    if len(l:boundary_cols) < 2
+      continue
+    endif
+
+    call add(l:table_row_infos, {
+          \ 'lnum': l:lnum,
+          \ 'boundary_cols': l:boundary_cols,
+          \ })
+  endfor
+
+  if empty(l:table_row_infos)
+    return ''
+  endif
+
+  " Find the current row.
+  let l:current_row_idx = -1
+
+  for l:i in range(len(l:table_row_infos))
+    if l:table_row_infos[l:i].lnum == line('.')
+      let l:current_row_idx = l:i
+      break
+    endif
+  endfor
+
+  let l:target_row_idx = l:current_row_idx
+
+  " Move from a separator row to the adjacent data row.
+  if l:current_row_idx < 0
+    if 0 < a:direction
+      for l:i in range(len(l:table_row_infos))
+        if line('.') < l:table_row_infos[l:i].lnum
+          let l:target_row_idx = l:i
+          break
+        endif
+      endfor
+
+      let l:target_cell_idx = 0
+    else
+      for l:i in reverse(range(len(l:table_row_infos)))
+        if l:table_row_infos[l:i].lnum < line('.')
+          let l:target_row_idx = l:i
+          break
+        endif
+      endfor
+
+      if 0 <= l:target_row_idx
+        let l:target_cell_idx = s:get_last_cell_idx(l:table_row_infos[l:target_row_idx])
+      endif
+    endif
+
+    if l:target_row_idx < 0
+      return ''
+    endif
+  else
+    " Find the current cell.
+    let l:boundary_cols =
+          \ l:table_row_infos[l:current_row_idx].boundary_cols
+    let l:cell_count = len(l:boundary_cols) - 1
+    let l:current_cell_idx = l:cell_count - 1
+
+    for l:i in range(l:cell_count)
+      if col('.') <= l:boundary_cols[l:i + 1]
+        let l:current_cell_idx = l:i
+        break
+      endif
+    endfor
+
+    " Move to the adjacent cell or row.
+    let l:target_cell_idx = l:current_cell_idx + a:direction
+
+    if l:target_cell_idx < 0
+      let l:target_row_idx -= 1
+
+      if l:target_row_idx < 0
+        return ''
+      endif
+
+      let l:target_cell_idx = s:get_last_cell_idx(l:table_row_infos[l:target_row_idx])
+    elseif l:cell_count <= l:target_cell_idx
+      let l:target_row_idx += 1
+
+      if len(l:table_row_infos) <= l:target_row_idx
+        return ''
+      endif
+
+      let l:target_cell_idx = 0
+    endif
+  endif
+
+  " Move the cursor to the beginning of the target cell.
+  let l:target_row_info = l:table_row_infos[l:target_row_idx]
+  let l:boundary_cols = l:target_row_info.boundary_cols
+  let l:start_col = l:boundary_cols[l:target_cell_idx] + 1
+  let l:end_col = l:boundary_cols[l:target_cell_idx + 1]
+  let l:text = strpart(
+        \ getline(l:target_row_info.lnum),
+        \ l:start_col - 1,
+        \ l:end_col - l:start_col,
+        \ )
+  let l:leading = matchend(l:text, '^\s*')
+  let l:target_col = l:start_col + l:leading
+
+  if l:end_col <= l:target_col
+    let l:target_col = l:start_col
+  endif
+
+  return "\<Cmd>call cursor(" . l:target_row_info.lnum . ", " . l:target_col . ")\<CR>"
+endfunction
+
+nnoremap <buffer> <expr> <Tab> <SID>md_table_move_cursor_cell(1)
+nnoremap <buffer> <expr> <S-Tab> <SID>md_table_move_cursor_cell(-1)
+
+" s:get_last_cell_idx() {{{4
+function! s:get_last_cell_idx(table_row_info) abort
+  return len(a:table_row_info.boundary_cols) - 2
+endfunction
+
 " GFM Spec 5. Container blocks {{{1
 " 5.1 Block quotes {{{2
 " feat: block quote continuation {{{3
